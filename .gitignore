@@ -1,0 +1,90 @@
+build
+mx.scratch
+!.settings
+
+# ============
+# General
+# ============
+*.log
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+.Trashes
+
+# ============
+# CMake
+# ============
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+*.dir/
+
+# ============
+# Build artifacts
+# ============
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.elf
+*.hex
+*.bin
+*.axf
+*.srec
+*.su
+*.out
+*.lst
+*.map
+*.sym
+
+# ============
+# STM32CubeIDE
+# ============
+.project
+.cproject
+.settings/
+.mxproject
+Debug/
+Release/
+MinSizeRel/
+RelWithDebInfo/
+
+# ============
+# STM32CubeMX
+# ============
+# Note: Do NOT ignore .ioc files (STM32CubeMX project configuration)
+# They are required to regenerate the project.
+# .ioc
+
+# ============
+# VS Code
+# ============
+.vscode/
+
+# ============
+# Toolchain and Debug
+# ============
+arm-none-eabi/
+*.gcda
+*.gcno
+*.lss
+*.swo
+*.jlink
+*.openocd
+*.stlink
+
+# ============
+# IDE (Keil, IAR, etc.)
+# ============
+*.uvprojx
+*.uvoptx
+*.ewp
+*.eww
