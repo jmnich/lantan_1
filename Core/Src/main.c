@@ -120,7 +120,7 @@ int main(void)
   static TaskHandle_t vCommMainTaskHandle;
   static TaskHandle_t vCmdExecTaskHandle;
 
-  xTaskCreate(vComm_MainTask, "commMain", 1024, NULL, 1, &vCommMainTaskHandle);
+  xTaskCreate(vComm_MainTask, "commMain", 2048, NULL, 1, &vCommMainTaskHandle);
   xTaskCreate(vCmd_MainTask, "cmdExec", 2048, NULL, 2, &vCmdExecTaskHandle);
 
   vTaskStartScheduler();

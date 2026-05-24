@@ -211,8 +211,8 @@ static BaseType_t xComm_ParseCommand(const char *pcBuffer, CommCommand_t *pxComm
     
     pxCommand->id = eCmdID;
     
-    // Parse the remaining 4 arguments
-    for (uint32_t i = 0; i < 4; i++) {
+    // Parse the remaining 32 arguments
+    for (uint32_t i = 0; i < 32; i++) {
         pcToken = strtok(NULL, ";\n\r");
         if (pcToken == NULL) {
             // Missing arguments - default to 0

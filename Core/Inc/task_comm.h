@@ -18,7 +18,7 @@ typedef enum {
 // Command structure with ID and 4 unsigned integer arguments
 typedef struct {
     CommCommandID_t id;
-    uint32_t args[4];
+    uint32_t args[32];
 } CommCommand_t;
 
 // Queue handle for incoming commands
