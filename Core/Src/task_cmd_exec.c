@@ -33,7 +33,7 @@ void vCmd_HandleVoltDC(const CommCommand_t *pxCommand) {
     
     // Send acknowledgment
     vComm_Printf("VOLT_DC ACK:%lu;%lu;%lu;%lu\n", 
-                 pxCommand->args[0], pxCommand->args[1], 
+                 pxCommand->args[0], pxCommand->args[1],
                  pxCommand->args[2], pxCommand->args[3]);
 }
 
@@ -56,6 +56,7 @@ void vCmd_MainTask(void *pvParams) {
     vComm_Printf("HELLO\r\n");
 
     AD5664_Init();
+    vLL_Set9VRail(1);  
     
     CommCommand_t xCommand;
     

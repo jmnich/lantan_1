@@ -1,6 +1,7 @@
 #include "lantan_ll.h"
 
 #include "gpio.h"
+#include "main.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_gpio.h"
 #include <stdint.h>
@@ -64,5 +65,13 @@ void vLL_SetLED(LantanLED_t _led, LantanLEDMode_t _mode) {
     } else {
         HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(GPIOxDBG, GPIO_PinDBG, GPIO_PIN_RESET);
+    }
+}
+
+void vLL_Set9VRail(uint8_t _enabled) {
+    if(_enabled == 1) {
+        HAL_GPIO_WritePin(ENA_9V_GPIO_Port, ENA_9V_Pin, GPIO_PIN_SET);
+    } else {
+        HAL_GPIO_WritePin(ENA_9V_GPIO_Port, ENA_9V_Pin, GPIO_PIN_RESET);
     }
 }
