@@ -28,6 +28,7 @@
 /* USER CODE BEGIN Includes */
 #include "lantan_ll.h"
 #include "task_comm.h"
+#include "task_cmd_exec.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -116,9 +117,10 @@ int main(void)
   vLL_LockLEDs(0); // unlock leds
 
   static TaskHandle_t vCommMainTaskHandle;
+  static TaskHandle_t vCmdExecTaskHandle;
 
   xTaskCreate(vComm_MainTask, "commMain", 1024, NULL, 1, &vCommMainTaskHandle);
-
+  xTaskCreate(vCmd_MainTask, "cmdExec", 2048, NULL, 2, &vCmdExecTaskHandle);
 
   vTaskStartScheduler();
   /* USER CODE END 2 */

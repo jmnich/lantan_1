@@ -47,6 +47,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/lantan_ll.c
     Core/Src/task_comm.c
+    Core/Src/task_cmd_exec.c
 )
 
 # Add include paths

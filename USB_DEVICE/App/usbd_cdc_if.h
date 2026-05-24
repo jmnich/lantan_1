@@ -110,6 +110,9 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
 
+// Callback for received data
+void USBD_CDC_RxCallback(uint8_t *Buf, uint32_t *Len);
+
 /* USER CODE END EXPORTED_FUNCTIONS */
 
 /**

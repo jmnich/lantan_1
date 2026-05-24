@@ -261,6 +261,10 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
+  // Call the RX callback to handle received data
+  USBD_CDC_RxCallback(Buf, Len);
+  
+  // Setup next reception
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
@@ -316,6 +320,17 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+
+/**
+  * @brief  Weak default implementation of RX callback
+  *         This can be overridden by the application
+  * @param  Buf: Buffer of data received
+  * @param  Len: Number of bytes received
+  */
+__weak void USBD_CDC_RxCallback(uint8_t *Buf, uint32_t *Len) {
+  UNUSED(Buf);
+  UNUSED(Len);
+}
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
