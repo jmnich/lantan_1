@@ -2,6 +2,7 @@
 
 #include "FreeRTOS.h"
 #include "driver_ad5664.h"
+#include "lantan_ll.h"
 #include "projdefs.h"
 #include "task.h"
 #include "queue.h"
@@ -96,10 +97,18 @@ void vCmd_MainTask(void *pvParams) {
         // }
 
         // AD5664_SetAllVoltages(500);
-        AD5664_SetVoltage(AD5664_CHANNEL_B, 500);
+        vLL_SetLED(LantanLED_Flt, LantanLED_On);
+        AD5664_SetVoltage(AD5664_CHANNEL_C, 500);
         vTaskDelay(pdMS_TO_TICKS(2000));
         // AD5664_SetAllVoltages(1500);
-        AD5664_SetVoltage(AD5664_CHANNEL_B, 1500);
+        AD5664_SetVoltage(AD5664_CHANNEL_C, 1500);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        vLL_SetLED(LantanLED_Flt, LantanLED_Off);
+        AD5664_SetVoltage(AD5664_CHANNEL_A, 500);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        // AD5664_SetAllVoltages(1500);
+        AD5664_SetVoltage(AD5664_CHANNEL_A, 1500);
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }

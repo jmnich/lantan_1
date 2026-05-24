@@ -28,13 +28,15 @@ static void AD5664_SPI_Transmit(uint8_t *pTxData, uint16_t usSize) {
 void AD5664_Init(void) {
     // Ensure CS is high initially
     AD5664_CS_HIGH();
+    for(int i = 0; i < 20; i++) __NOP();
+    AD5664_SetAllVoltages(0);
+
+    // uint8_t aucTxData[3];
+    // aucTxData[0] = (AD5664_CMD_LOAD_LDAC_REGISTER << 3);
+    // aucTxData[1] = (uint8_t)(0x0);
+    // aucTxData[2] = (uint8_t)(0b00001111);
     
-    uint8_t aucTxData[3];
-    aucTxData[0] = (AD5664_CMD_LOAD_LDAC_REGISTER << 3);
-    aucTxData[1] = (uint8_t)(0x0);
-    aucTxData[2] = (uint8_t)(0b00001111);
-    
-    AD5664_SPI_Transmit(aucTxData, 3);
+    // AD5664_SPI_Transmit(aucTxData, 3);
 }
 
 /**
@@ -65,9 +67,9 @@ void AD5664_SetVoltage(AD5664_Channel_t eChannel, uint32_t ulVoltage_mV) {
     uint8_t aucTxData[3];
     uint8_t ucAddr = (uint8_t)eChannel; // = (eChannel == AD5664_CHANNEL_ALL) ? AD5664_ADDR_ALL_DACS : eChannel;  
     
-    aucTxData[0] = (0 << 3) | (ucAddr << 0);
-    aucTxData[1] = (uint8_t)(usCode >> 8);
-    aucTxData[2] = (uint8_t)(usCode & 0xFF);
+        aucTxData[0] = (0b010 << 3) | (ucAddr << 0);
+        aucTxData[1] = (uint8_t)(usCode >> 8);
+        aucTxData[2] = (uint8_t)(usCode & 0xFF);
     
     AD5664_SPI_Transmit(aucTxData, 3);
 }
