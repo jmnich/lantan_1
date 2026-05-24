@@ -3,6 +3,7 @@
 
 #include "lantan_ll.h"
 #include "task_comm.h"
+#include "driver_ad5664.h"
 
 // Function prototypes
 void vCmd_MainTask(void *pvParams);

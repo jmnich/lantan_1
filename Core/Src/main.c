@@ -20,7 +20,7 @@
 #include "main.h"
 #include "FreeRTOS.h"
 #include "cmsis_os2.h"
-#include "task_comm.h"
+#include "spi.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -113,6 +113,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_SPI4_Init();
   /* USER CODE BEGIN 2 */
   vLL_LockLEDs(0); // unlock leds
 
