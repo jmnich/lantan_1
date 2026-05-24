@@ -63,6 +63,16 @@ void Error_Handler(void);
 #define LED2_GPIO_Port GPIOA
 #define LED3_Pin GPIO_PIN_2
 #define LED3_GPIO_Port GPIOA
+#define FAN1_Pin GPIO_PIN_9
+#define FAN1_GPIO_Port GPIOE
+#define FAN2_Pin GPIO_PIN_10
+#define FAN2_GPIO_Port GPIOE
+#define FAN3_Pin GPIO_PIN_11
+#define FAN3_GPIO_Port GPIOE
+#define FAN4_Pin GPIO_PIN_12
+#define FAN4_GPIO_Port GPIOE
+#define FAN5_Pin GPIO_PIN_13
+#define FAN5_GPIO_Port GPIOE
 #define ENA_9V_Pin GPIO_PIN_14
 #define ENA_9V_GPIO_Port GPIOE
 #define LED0_DBG_Pin GPIO_PIN_0

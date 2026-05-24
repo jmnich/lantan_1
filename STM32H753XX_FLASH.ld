@@ -73,6 +73,11 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Define output sections */
 SECTIONS
 {
+  .freertos_heap 0x24000000 :
+  {
+    *(.freertos_heap)
+  } > RAM
+
   /* The startup code goes first into FLASH */
   .isr_vector :
   {
