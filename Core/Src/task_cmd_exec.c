@@ -49,8 +49,8 @@ void vCmd_HandleVoltDC(const CommCommand_t *pxCommand) {
     // args[1] = Channel B voltage in mV
     // args[2] = Channel C voltage in mV
     // args[3] = Channel D voltage in mV
-    AD5664_SetAllVoltages(pxCommand->args[0], pxCommand->args[1], 
-                          pxCommand->args[2], pxCommand->args[3]);
+    // AD5664_SetAllVoltages(pxCommand->args[0], pxCommand->args[1], 
+    //                       pxCommand->args[2], pxCommand->args[3]);
     
     // Send acknowledgment
     vComm_Printf("VOLT_DC ACK:%lu;%lu;%lu;%lu\n", 
@@ -95,11 +95,11 @@ void vCmd_MainTask(void *pvParams) {
         //     }
         // }
 
-        AD5664_SetAllVoltages(500, 500, 500, 500);
-        // AD5664_SetVoltage(AD5664_CHANNEL_A, 500);
+        // AD5664_SetAllVoltages(500);
+        AD5664_SetVoltage(AD5664_CHANNEL_B, 500);
         vTaskDelay(pdMS_TO_TICKS(2000));
-        AD5664_SetAllVoltages(1500, 1500, 1500, 1500);
-        // AD5664_SetVoltage(AD5664_CHANNEL_A, 1500);
+        // AD5664_SetAllVoltages(1500);
+        AD5664_SetVoltage(AD5664_CHANNEL_B, 1500);
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
