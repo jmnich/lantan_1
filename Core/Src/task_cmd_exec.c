@@ -3,6 +3,8 @@
 #include "FreeRTOS.h"
 #include "driver_ad5664.h"
 #include "lantan_ll.h"
+#include "lantan_synth.h"
+
 #include "portmacro.h"
 #include "projdefs.h"
 #include "task.h"
@@ -50,10 +52,16 @@ void vCmd_MainTask(void *pvParams) {
     vLL_SetLED(LantanLED_Work, LantanLED_On);
     vLL_SetLED(LantanLED_Run, LantanLED_On);
     vTaskDelay(pdMS_TO_TICKS(500));
+
     vLL_SetLED(LantanLED_Flt, LantanLED_Off);
     vLL_SetLED(LantanLED_Work, LantanLED_Off);
 
     vComm_Printf("HELLO\r\n");
+
+    vSynth_CalculateChannel(SynthChannel_A, 1000, 500);
+    vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
+    vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
+    vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
 
     AD5664_Init();
     vLL_Set9VRail(1);  
