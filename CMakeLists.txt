@@ -50,6 +50,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/task_cmd_exec.c
     Core/Src/driver_ad5664.c
     Core/Src/lantan_synth.c
+    Core/Src/lantan_demodulator.c
 )
 
 # Add include paths

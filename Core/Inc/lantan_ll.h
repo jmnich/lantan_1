@@ -2,6 +2,7 @@
 #define LANTAN_LL_H_
 
 #include "stm32h7xx_hal.h"
+#include "driver_ad5664.h"
 
 typedef enum {
     LantanLED_Flt,
@@ -18,5 +19,6 @@ typedef enum {
 void vLL_LockLEDs(uint8_t _lock);
 void vLL_SetLED(LantanLED_t _led, LantanLEDMode_t _mode);
 void vLL_Set9VRail(uint8_t _enabled);
+void vLL_SetDACDiagnosticChannel(AD5664_Channel_t _ch);
 
 #endif // LANTAN_LL_H_

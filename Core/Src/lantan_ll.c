@@ -1,5 +1,6 @@
 #include "lantan_ll.h"
 
+#include "driver_ad5664.h"
 #include "gpio.h"
 #include "main.h"
 #include "stm32h7xx_hal.h"
@@ -73,5 +74,29 @@ void vLL_Set9VRail(uint8_t _enabled) {
         HAL_GPIO_WritePin(ENA_9V_GPIO_Port, ENA_9V_Pin, GPIO_PIN_SET);
     } else {
         HAL_GPIO_WritePin(ENA_9V_GPIO_Port, ENA_9V_Pin, GPIO_PIN_RESET);
+    }
+}
+
+void vLL_SetDACDiagnosticChannel(AD5664_Channel_t _ch) {
+    switch(_ch)
+    {
+        case AD5664_CHANNEL_A:
+            HAL_GPIO_WritePin(DAC_DIAG_A0_GPIO_Port, DAC_DIAG_A0_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(DAC_DIAG_A1_GPIO_Port, DAC_DIAG_A1_Pin, GPIO_PIN_RESET);
+            break;
+        case AD5664_CHANNEL_B:
+            HAL_GPIO_WritePin(DAC_DIAG_A0_GPIO_Port, DAC_DIAG_A0_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(DAC_DIAG_A1_GPIO_Port, DAC_DIAG_A1_Pin, GPIO_PIN_RESET);
+            break;
+        case AD5664_CHANNEL_C:
+            HAL_GPIO_WritePin(DAC_DIAG_A0_GPIO_Port, DAC_DIAG_A0_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(DAC_DIAG_A1_GPIO_Port, DAC_DIAG_A1_Pin, GPIO_PIN_SET);
+            break;
+        case AD5664_CHANNEL_D:
+            HAL_GPIO_WritePin(DAC_DIAG_A0_GPIO_Port, DAC_DIAG_A0_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(DAC_DIAG_A1_GPIO_Port, DAC_DIAG_A1_Pin, GPIO_PIN_SET);
+            break;
+        default:
+            break;        
     }
 }

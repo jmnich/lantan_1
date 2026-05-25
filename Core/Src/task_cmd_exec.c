@@ -4,6 +4,7 @@
 #include "driver_ad5664.h"
 #include "lantan_ll.h"
 #include "lantan_synth.h"
+#include "lantan_demodulator.h"
 
 #include "portmacro.h"
 #include "projdefs.h"
@@ -75,6 +76,8 @@ void vCmd_MainTask(void *pvParams) {
     vSynth_SetChannelEnabled(SynthChannel_D, 1);
     uSynth_StartSynth();
     
+    fDemod_SingleFreq(1000, DemodSrc_Diagnostic, AD5664_CHANNEL_A);    
+
     CommCommand_t xCommand;
     
     while (1) {

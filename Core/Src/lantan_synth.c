@@ -37,7 +37,7 @@ void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pk
         float sampleValue = (float)_offset + ((float)_pkpk / 2.0f) * sinf(phase);
         synthBuffer[_ch][i] = (uint32_t)AD5664_VoltageToCode((uint32_t)lroundf(sampleValue));
         uint8_t *bytes = (uint8_t *)&synthBuffer[_ch][i];
-        uint8_t ucAddr = (uint8_t)ad_channel; // = (eChannel == AD5664_CHANNEL_ALL) ? AD5664_ADDR_ALL_DACS : eChannel;  
+        uint8_t ucAddr = (uint8_t)ad_channel; 
         bytes[2] = (0b010 << 3) | (ucAddr << 0);
 
         // swap LSB and cmd around so the buffer can be used directly by SPI
@@ -83,13 +83,12 @@ uint8_t uSynth_StartSynth(void) {
  
     // full spi transmission must fit between timer isr ticks
 
-    // CS should be pulled up in spi finished isr
-
-    // that way i get some deadtime between spi transmission to satisfy the 15ns interval
-
-    // test with oscillosope how fast i can go in practice
-
-    // TODO
+    /*
+    Note: faster SPI transmission should be possible than 
+    currently implemented. Going up to 100k sampling drops
+    every second message and setting SPI above 20 MHz 
+    completely breaks the transmission.
+    */
 
     HAL_TIM_Base_Start_IT(&htim7);
 
