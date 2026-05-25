@@ -50,5 +50,6 @@ typedef enum {
 void AD5664_Init(void);
 void AD5664_SetVoltage(AD5664_Channel_t eChannel, uint32_t ulVoltage_mV);
 void AD5664_SetAllVoltages(uint32_t ulVoltage_mV);
+uint16_t AD5664_VoltageToCode(uint32_t ulVoltage_mV);
 
 #endif // DRIVER_AD5664_H_

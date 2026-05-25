@@ -44,7 +44,7 @@ void AD5664_Init(void) {
  * @param ulVoltage_mV Voltage in millivolts
  * @return 16-bit DAC code
  */
-static uint16_t AD5664_VoltageToCode(uint32_t ulVoltage_mV) {
+uint16_t AD5664_VoltageToCode(uint32_t ulVoltage_mV) {
     // Clamp voltage to reference range
     if (ulVoltage_mV > AD5664_REF_VOLTAGE_mV) {
         ulVoltage_mV = AD5664_REF_VOLTAGE_mV;

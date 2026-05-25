@@ -14,7 +14,7 @@ static uint8_t synthChannelActive[CHCNT] = {0};
 static uint32_t synthBuffer[CHCNT][SYNTH_BUF_LEN] __attribute__((section(".freertos_heap")));
 static uint32_t synthUsedSamples[CHCNT] = {0};
 
-const uint32_t maxSampleFrequencyPerCh = 50000;
+const uint32_t maxSampleFrequencyPerCh = 75000;
 const uint32_t samplingFrequency = maxSampleFrequencyPerCh;
 const uint32_t totalSPITransmissionsFrequency = samplingFrequency * 4;
 
@@ -35,7 +35,7 @@ void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pk
     for (uint32_t i = 0; i < numSamples; i++) {
         float phase = 2.0f * 3.1415926535f * synthFrequency[_ch] * (float)i / (float)samplingFrequency;
         float sampleValue = (float)_offset + ((float)_pkpk / 2.0f) * sinf(phase);
-        synthBuffer[_ch][i] = (uint32_t)lroundf(sampleValue);
+        synthBuffer[_ch][i] = (uint32_t)AD5664_VoltageToCode((uint32_t)lroundf(sampleValue));
         uint8_t *bytes = (uint8_t *)&synthBuffer[_ch][i];
         uint8_t ucAddr = (uint8_t)ad_channel; // = (eChannel == AD5664_CHANNEL_ALL) ? AD5664_ADDR_ALL_DACS : eChannel;  
         bytes[2] = (0b010 << 3) | (ucAddr << 0);
