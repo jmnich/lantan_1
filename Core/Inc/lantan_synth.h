@@ -14,5 +14,6 @@ typedef enum {
 void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pkpk);
 void vSynth_SetChannelEnabled(LantanSynthCh_t _ch, uint8_t _enable);
 uint8_t uSynth_StartSynth(void);
+void vSynth_SynthTimerCallback(void);
 
 #endif // LANTAN_SYNTH_H_

@@ -21,6 +21,7 @@
 #include "FreeRTOS.h"
 #include "cmsis_os2.h"
 #include "spi.h"
+#include "tim.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -29,6 +30,7 @@
 #include "lantan_ll.h"
 #include "task_comm.h"
 #include "task_cmd_exec.h"
+#include "lantan_synth.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -114,6 +116,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI4_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   vLL_LockLEDs(0); // unlock leds
 
@@ -258,7 +261,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  else if (htim->Instance == TIM7)
+  {
+    vSynth_SynthTimerCallback();
+  }
   /* USER CODE END Callback 1 */
 }
 

@@ -58,13 +58,19 @@ void vCmd_MainTask(void *pvParams) {
 
     vComm_Printf("HELLO\r\n");
 
+    AD5664_Init();
+    vLL_Set9VRail(1);  
+
     vSynth_CalculateChannel(SynthChannel_A, 1000, 500);
     vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
     vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
     vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
 
-    AD5664_Init();
-    vLL_Set9VRail(1);  
+    vSynth_SetChannelEnabled(SynthChannel_A, 1);
+    vSynth_SetChannelEnabled(SynthChannel_B, 1);
+    vSynth_SetChannelEnabled(SynthChannel_C, 1);
+    vSynth_SetChannelEnabled(SynthChannel_D, 1);
+    uSynth_StartSynth();
     
     CommCommand_t xCommand;
     
