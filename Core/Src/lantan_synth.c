@@ -14,12 +14,12 @@ static uint8_t synthChannelActive[CHCNT] = {0};
 static uint32_t synthBuffer[CHCNT][SYNTH_BUF_LEN] __attribute__((section(".freertos_heap")));
 static uint32_t synthUsedSamples[CHCNT] = {0};
 
-const uint32_t maxSampleFrequencyPerCh = 1000;
+const uint32_t maxSampleFrequencyPerCh = 25000;
 const uint32_t samplingFrequency = maxSampleFrequencyPerCh;
 const uint32_t totalSPITransmissionsFrequency = samplingFrequency * 4;
 
 // frequencies of sinewaves for different channels
-const float synthFrequency[] = {8,10,12,14};
+const float synthFrequency[] = {1000,1200,1400,1600};
 
 void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pkpk) {
     // Calculate number of samples for one full period
@@ -70,9 +70,11 @@ uint8_t uSynth_StartSynth(void) {
     // configure and start timer 
     TIM_MasterConfigTypeDef sMasterConfig = {0};
     htim7.Instance = TIM7;
-    htim7.Init.Prescaler = 49;
+    htim7.Init.Prescaler = 0;//49;
     htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim7.Init.Period = 1199;
+    uint16_t period = 240E6 / totalSPITransmissionsFrequency;
+    htim7.Init.Period = period - 1;
+    // htim7.Init.Period = 1199;
     htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     HAL_TIM_Base_Init(&htim7);
     sMasterConfig.MasterOutputTrigger = TIM_TRGO_ENABLE;
@@ -101,7 +103,7 @@ void vSynth_SynthTimerCallback(void)
 
     // start SPI transmission
     HAL_GPIO_WritePin(SPI4_CS_GPIO_Port, SPI4_CS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit_IT(&hspi4, (uint8_t*)synthBuffer[nextChannel][nextIndex[nextChannel]], 3);
+    HAL_SPI_Transmit_IT(&hspi4, (uint8_t*)&synthBuffer[nextChannel][nextIndex[nextChannel]], 3);
 
     // increment or wrap index
     nextIndex[nextChannel] = (nextIndex[nextChannel] + 1) % synthUsedSamples[nextChannel];
