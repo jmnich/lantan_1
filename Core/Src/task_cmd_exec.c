@@ -58,7 +58,10 @@ void vCmd_MainTask(void *pvParams) {
 
     vComm_Printf("HELLO\r\n");
 
-    AD5664_Init();
+    // AD5664_Init();
+    // pull CS high
+    HAL_GPIO_WritePin(SPI4_CS_GPIO_Port, SPI4_CS_Pin, GPIO_PIN_SET);
+
     vLL_Set9VRail(1);  
 
     vSynth_CalculateChannel(SynthChannel_A, 1000, 500);
