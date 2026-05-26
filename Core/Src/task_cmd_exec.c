@@ -75,8 +75,14 @@ void vCmd_MainTask(void *pvParams) {
     vSynth_SetChannelEnabled(SynthChannel_C, 1);
     vSynth_SetChannelEnabled(SynthChannel_D, 1);
     uSynth_StartSynth();
-    
-    float demodVal1 = fDemod_SingleFreq(1000, DemodSrc_Diagnostic, AD5664_CHANNEL_A);    
+
+    float demodValA = fDemod_SingleFreq(synthFrequency[0], DemodSrc_Diagnostic, AD5664_CHANNEL_A);    
+    float demodValB = fDemod_SingleFreq(synthFrequency[1], DemodSrc_Diagnostic, AD5664_CHANNEL_B);    
+    float demodValC = fDemod_SingleFreq(synthFrequency[2], DemodSrc_Diagnostic, AD5664_CHANNEL_C);    
+    float demodValD = fDemod_SingleFreq(synthFrequency[3], DemodSrc_Diagnostic, AD5664_CHANNEL_D);    
+
+
+
 
     CommCommand_t xCommand;
     
