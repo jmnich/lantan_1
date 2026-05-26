@@ -73,6 +73,11 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Define output sections */
 SECTIONS
 {
+  .adc_buffers 0x30000000 : ALIGN(4)
+  {
+    *(.adc_buffers)
+  } > RAM_D2
+
   .freertos_heap 0x24000000 :
   {
     *(.freertos_heap)

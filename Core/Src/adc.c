@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "adc.h"
+#include "stm32h7xx_hal_adc_ex.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -87,6 +88,10 @@ void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
+  
+  // CRITICAL: STM32H7 ADC requires calibration before use
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
+  
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */

@@ -9,6 +9,7 @@
 #include "gpio.h"
 #include "adc.h"
 #include "stm32h7xx_hal_adc.h"
+#include "stm32h7xx_hal_adc_ex.h"
 #include "stm32h7xx_hal_def.h"
 #include "stm32h7xx_hal_tim.h"
 #include "string.h"
@@ -20,7 +21,7 @@
 
 
 #define DEMOD_BUF_LEN   10000
-uint32_t demodBuf[DEMOD_BUF_LEN];
+uint32_t demodBuf[DEMOD_BUF_LEN] __attribute__((section(".adc_buffers")));
 
 static volatile uint8_t adcDmaComplete = 0;
 
@@ -80,24 +81,28 @@ static void vLocal_InitADC(void) {
     adcDmaComplete = 0;
     
     // Configure ADC1 for external trigger from TIM6
-    // hadc1.Instance = ADC1;
-    // hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
-    // hadc1.Init.Resolution = ADC_RESOLUTION_16B;
-    // hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-    // hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
-    // hadc1.Init.LowPowerAutoWait = DISABLE;
-    // hadc1.Init.ContinuousConvMode = ENABLE;
-    // hadc1.Init.NbrOfConversion = 1;
-    // hadc1.Init.DiscontinuousConvMode = DISABLE;
-    // hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
-    // hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-    // hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
-    // hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-    // hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
-    // hadc1.Init.OversamplingMode = DISABLE;
-    // hadc1.Init.Oversampling.Ratio = 1;
+    hadc1.Instance = ADC1;
+    hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+    hadc1.Init.Resolution = ADC_RESOLUTION_16B;
+    hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+    hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
+    hadc1.Init.LowPowerAutoWait = DISABLE;
+    hadc1.Init.ContinuousConvMode = DISABLE;
+    hadc1.Init.NbrOfConversion = 1;
+    hadc1.Init.DiscontinuousConvMode = DISABLE;
+    hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
+    hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+    hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
+    hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+    hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
+    hadc1.Init.OversamplingMode = DISABLE;
+    hadc1.Init.Oversampling.Ratio = 1;
     
-    // HAL_ADC_Init(&hadc1);
+    // Re-initialize ADC with these settings
+    HAL_ADC_Init(&hadc1);
+    
+    // CRITICAL: STM32H7 ADC requires calibration before use
+    HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
 }
 
 static void vLocal_StartADC(void) {    
