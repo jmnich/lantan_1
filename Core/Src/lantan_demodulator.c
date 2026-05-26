@@ -54,8 +54,10 @@ static void vLocal_SetSamplingTimer(float samplingFreq) {
     
     // Configure TIM6
     TIM_HandleTypeDef htim6_local = htim6;
-    htim6_local.Init.Prescaler = prescaler;
-    htim6_local.Init.Period = current_arr;
+    // htim6_local.Init.Prescaler = prescaler;
+    // htim6_local.Init.Period = current_arr;
+    htim6_local.Init.Prescaler = 9;
+    htim6_local.Init.Period = 239;
     htim6_local.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim6_local.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     HAL_TIM_Base_Init(&htim6_local);
@@ -78,24 +80,24 @@ static void vLocal_InitADC(void) {
     adcDmaComplete = 0;
     
     // Configure ADC1 for external trigger from TIM6
-    hadc1.Instance = ADC1;
-    hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
-    hadc1.Init.Resolution = ADC_RESOLUTION_16B;
-    hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-    hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
-    hadc1.Init.LowPowerAutoWait = DISABLE;
-    hadc1.Init.ContinuousConvMode = ENABLE;
-    hadc1.Init.NbrOfConversion = 1;
-    hadc1.Init.DiscontinuousConvMode = DISABLE;
-    hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
-    hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-    hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
-    hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-    hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
-    hadc1.Init.OversamplingMode = DISABLE;
-    hadc1.Init.Oversampling.Ratio = 1;
+    // hadc1.Instance = ADC1;
+    // hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+    // hadc1.Init.Resolution = ADC_RESOLUTION_16B;
+    // hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+    // hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
+    // hadc1.Init.LowPowerAutoWait = DISABLE;
+    // hadc1.Init.ContinuousConvMode = ENABLE;
+    // hadc1.Init.NbrOfConversion = 1;
+    // hadc1.Init.DiscontinuousConvMode = DISABLE;
+    // hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
+    // hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+    // hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
+    // hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+    // hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
+    // hadc1.Init.OversamplingMode = DISABLE;
+    // hadc1.Init.Oversampling.Ratio = 1;
     
-    HAL_ADC_Init(&hadc1);
+    // HAL_ADC_Init(&hadc1);
 }
 
 static void vLocal_StartADC(void) {    
