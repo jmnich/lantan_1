@@ -22,7 +22,6 @@
 #include "cmsis_os2.h"
 #include "adc.h"
 #include "dma.h"
-#include "lptim.h"
 #include "spi.h"
 #include "tim.h"
 #include "usb_device.h"
@@ -123,7 +122,7 @@ int main(void)
   MX_TIM7_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
-  MX_LPTIM1_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   vLL_LockLEDs(0); // unlock leds
 

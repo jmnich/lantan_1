@@ -1,12 +1,15 @@
 #include "lantan_demodulator.h"
 
+#include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
 #include "lantan_synth.h"
 #include "lantan_ll.h"
-#include "lptim.h"
+#include "tim.h"
 #include "gpio.h"
 #include "adc.h"
+#include "stm32h7xx_hal_adc.h"
 #include "stm32h7xx_hal_def.h"
+#include "stm32h7xx_hal_tim.h"
 #include "string.h"
 #include "math.h"
 
@@ -22,13 +25,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     }
 }
 
-static uint32_t current_arr = 0; // Store the current ARR value for LPTIM1
+static uint32_t current_arr = 0; // Store the current ARR value for TIM6
 
 static void vLocal_SetSamplingTimer(float samplingFreq) {
     
-    // configure LPTIM1 to be sampling clock for ADC1
+    // configure TIM6 to be sampling clock for ADC1
     // APB1 clock is 100 MHz (from SystemClock_Config: APB1_DIV2 with HCLK=200MHz)
-    // LPTIM1 uses D2PCLK1 which is APB1 = 100 MHz
+    // TIM6 uses D2PCLK1 which is APB1 = 100 MHz
     // 
     // To get samplingFreq, we need:
     //   timer_freq = 100MHz / (prescaler + 1) / (arr + 1) = samplingFreq
@@ -37,29 +40,33 @@ static void vLocal_SetSamplingTimer(float samplingFreq) {
     // With prescaler = 0 (no prescaler), arr = 100000000 / 100000 - 1 = 999
     
     uint32_t apb1_freq = 100000000; // 100 MHz
-    uint32_t prescaler = 0; // LPTIM_PRESCALER_DIV1
+    uint32_t prescaler = 0; // No prescaler
     current_arr = (apb1_freq / (prescaler + 1)) / (uint32_t)samplingFreq - 1;
     
-    // Stop LPTIM1 if running
-    HAL_LPTIM_Counter_Stop(&hlptim1);
+    // Stop TIM6 if running
+    HAL_TIM_Base_Stop(&htim6);
     
-    // Configure LPTIM1
-    LPTIM_HandleTypeDef hlptim1_local = hlptim1;
-    hlptim1_local.Init.Clock.Source = LPTIM_CLOCKSOURCE_APBCLOCK_LPOSC;
-    hlptim1_local.Init.Clock.Prescaler = LPTIM_PRESCALER_DIV1;
-    hlptim1_local.Init.Trigger.Source = LPTIM_TRIGSOURCE_SOFTWARE;
-    hlptim1_local.Init.OutputPolarity = LPTIM_OUTPUTPOLARITY_HIGH;
-    hlptim1_local.Init.UpdateMode = LPTIM_UPDATE_IMMEDIATE;
-    hlptim1_local.Init.CounterSource = LPTIM_COUNTERSOURCE_INTERNAL;
-    hlptim1_local.Init.Input1Source = LPTIM_INPUT1SOURCE_GPIO;
-    hlptim1_local.Init.Input2Source = LPTIM_INPUT2SOURCE_GPIO;
+    // Configure TIM6
+    TIM_HandleTypeDef htim6_local = htim6;
+    htim6_local.Init.Prescaler = prescaler;
+    htim6_local.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim6_local.Init.Period = current_arr;
+    htim6_local.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     
-    if (HAL_LPTIM_Init(&hlptim1_local) != HAL_OK) {
+    if (HAL_TIM_Base_Init(&htim6_local) != HAL_OK) {
         Error_Handler();
     }
     
+    // Configure TIM6 TRGO to trigger ADC on update event
+    TIM_MasterConfigTypeDef sMasterConfig = {0};
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim6_local, &sMasterConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
     // Update the global handle
-    hlptim1 = hlptim1_local;
+    htim6 = htim6_local;
 }   
 
 static void vLocal_StartADC(void) {
@@ -70,23 +77,35 @@ static void vLocal_StartADC(void) {
     // Reset the completion flag
     adcDmaComplete = 0;
     
-    // Configure ADC1 for external trigger from LPTIM1
-    hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_LPTIM1_OUT;
+    // Configure ADC1 for external trigger from TIM6
+    hadc1.Instance = ADC1;
+    hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+    hadc1.Init.Resolution = ADC_RESOLUTION_16B;
+    hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+    hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
+    hadc1.Init.LowPowerAutoWait = DISABLE;
+    hadc1.Init.ContinuousConvMode = DISABLE;
+    hadc1.Init.NbrOfConversion = 1;
+    hadc1.Init.DiscontinuousConvMode = DISABLE;
+    hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
     hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-    hadc1.Init.ContinuousConvMode = DISABLE; // Single conversion per trigger
+    hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
+    hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+    hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
+    hadc1.Init.OversamplingMode = DISABLE;
+    hadc1.Init.Oversampling.Ratio = 1;
     
     if (HAL_ADC_Init(&hadc1) != HAL_OK) {
         Error_Handler();
     }
     
-    // Start ADC with DMA
+    // Start ADC with DMA first - it will wait for external trigger
     if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)demodBuf, DEMOD_BUF_LEN) != HAL_OK) {
         Error_Handler();
     }
     
-    // Start LPTIM1 in PWM mode to generate periodic triggers
-    // Period = current_arr + 1 (autoreload value), Pulse = (current_arr + 1) / 2 (50% duty cycle)
-    if (HAL_LPTIM_PWM_Start(&hlptim1, current_arr + 1, (current_arr + 1) / 2) != HAL_OK) {
+    // Start TIM6 to generate periodic triggers
+    if (HAL_TIM_Base_Start_IT(&htim6) != HAL_OK) {
         Error_Handler();
     }
 }
@@ -96,7 +115,7 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     // prepare peripherals
     // Reset ADC and DMA state
     HAL_ADC_Stop_DMA(&hadc1);
-    HAL_LPTIM_Counter_Stop(&hlptim1);
+    HAL_TIM_Base_Stop(&htim6);
     
     // Set sampling frequency to at least 2x the demodulation frequency
     // For proper sampling, we typically want 5-10x the frequency
@@ -138,14 +157,26 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     // and wait until DMA is done
     vLocal_StartADC();
     
-    // Wait for DMA completion
-    while (adcDmaComplete == 0) {
-        // Wait for completion
+    // Wait for DMA completion with timeout
+    // Max time: DEMOD_BUF_LEN / min_sampling_freq = 10000 / 10000 = 1 second
+    // Add some margin: 3 seconds timeout
+    uint32_t timeout = 3000000; // ~3 seconds at 400MHz CPU
+    while (adcDmaComplete == 0 && timeout > 0) {
+        timeout--;
+        __NOP();
+    }
+    
+    // Check if timeout occurred
+    if (timeout == 0) {
+        // Cleanup and return error
+        HAL_ADC_Stop_DMA(&hadc1);
+        HAL_TIM_Base_Stop(&htim6);
+        return -1.0f; // Error: timeout
     }
     
     // Stop peripherals
     HAL_ADC_Stop_DMA(&hadc1);
-    HAL_LPTIM_Counter_Stop(&hlptim1);
+    HAL_TIM_Base_Stop(&htim6);
 
     // demodulate at the selected _demodFreq frequency 
     // Digital quadratic demodulation:
