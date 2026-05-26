@@ -1,8 +1,9 @@
 #MicroXplorer Configuration settings - do not modify
 ADC1.Channel-0\#ChannelRegularConversion=ADC_CHANNEL_10
+ADC1.ConversionDataManagement=ADC_CONVERSIONDATA_DMA_ONESHOT
 ADC1.EOCSelection=ADC_EOC_SEQ_CONV
 ADC1.ExternalTrigConv=ADC_EXTERNALTRIG_T6_TRGO
-ADC1.IPParameters=Rank-0\#ChannelRegularConversion,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,OffsetNumber-0\#ChannelRegularConversion,OffsetSignedSaturation-0\#ChannelRegularConversion,NbrOfConversionFlag,master,EOCSelection,ExternalTrigConv
+ADC1.IPParameters=Rank-0\#ChannelRegularConversion,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,OffsetNumber-0\#ChannelRegularConversion,OffsetSignedSaturation-0\#ChannelRegularConversion,NbrOfConversionFlag,master,EOCSelection,ExternalTrigConv,ConversionDataManagement
 ADC1.NbrOfConversionFlag=1
 ADC1.OffsetNumber-0\#ChannelRegularConversion=ADC_OFFSET_NONE
 ADC1.OffsetSignedSaturation-0\#ChannelRegularConversion=DISABLE

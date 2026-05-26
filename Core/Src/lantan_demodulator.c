@@ -45,7 +45,7 @@ static void vLocal_SetSamplingTimer(float samplingFreq) {
     // 
     // For 100kHz sampling: arr = (100MHz / prescaler) / 100kHz - 1
     // With prescaler = 0 (no prescaler), arr = 100000000 / 100000 - 1 = 999
-    
+
     uint32_t apb1_freq = 100000000; // 100 MHz
     uint32_t prescaler = 0; // No prescaler
     current_arr = (apb1_freq / (prescaler + 1)) / (uint32_t)samplingFreq - 1;
@@ -92,7 +92,7 @@ static void vLocal_InitADC(void) {
     hadc1.Init.DiscontinuousConvMode = DISABLE;
     hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
     hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-    hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
+    hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_ONESHOT;
     hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
     hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
     hadc1.Init.OversamplingMode = DISABLE;
@@ -101,8 +101,31 @@ static void vLocal_InitADC(void) {
     // Re-initialize ADC with these settings
     HAL_ADC_Init(&hadc1);
     
-    // CRITICAL: STM32H7 ADC requires calibration before use
+    // STM32H7 ADC requires calibration before use
     HAL_ADCEx_Calibration_Start(&hadc1, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
+
+
+    /* ADC1 DMA Init */
+    /* ADC1 Init */
+    DMA_HandleTypeDef hdma_adc1;
+    hdma_adc1.Instance = DMA1_Stream0;
+    hdma_adc1.Init.Request = DMA_REQUEST_ADC1;
+    hdma_adc1.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_adc1.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_adc1.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_adc1.Init.Mode = DMA_NORMAL;
+    hdma_adc1.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_adc1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_adc1) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    /* ADC1 interrupt Init */
+    HAL_NVIC_SetPriority(ADC_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(ADC_IRQn);
 }
 
 static void vLocal_StartADC(void) {    
@@ -167,18 +190,16 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
         timeout--;
         vTaskDelay(pdMS_TO_TICKS(1));
     }
-    
-    // Check if timeout occurred
-    if (timeout == 0) {
-        // Cleanup and return error
-        HAL_ADC_Stop_DMA(&hadc1);
-        HAL_TIM_Base_Stop(&htim6);
-        return -1.0f; // Error: timeout
-    }
-    
+
     // Stop peripherals
     HAL_ADC_Stop_DMA(&hadc1);
     HAL_TIM_Base_Stop(&htim6);
+
+    // Check if timeout occurred
+    if (timeout == 0) {
+        // return error
+        return -1.0f; // Error: timeout
+    }
 
     // demodulate at the selected _demodFreq frequency 
     // Digital quadratic demodulation:

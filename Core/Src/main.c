@@ -38,6 +38,8 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+
+#include "stm32h7xx_hal_adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,8 +63,6 @@
 // move the heap into a larger 
 uint8_t ucHeap[configTOTAL_HEAP_SIZE] __attribute__((section(".freertos_heap")));
 
-
-uint32_t tim6intcnt = 0;
 // uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
 /* USER CODE END PV */
 
@@ -270,10 +270,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   else if (htim->Instance == TIM7)
   {
     vSynth_SynthTimerCallback();
-  }
-  else if (htim->Instance == TIM6)
-  {
-    tim6intcnt++;
   }
   /* USER CODE END Callback 1 */
 }
