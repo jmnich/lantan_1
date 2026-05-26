@@ -20,7 +20,7 @@
 #include "queue.h"
 
 
-#define DEMOD_BUF_LEN   10000
+#define DEMOD_BUF_LEN   50000
 uint32_t demodBuf[DEMOD_BUF_LEN] __attribute__((section(".adc_buffers")));
 
 static volatile uint8_t adcDmaComplete = 0;
@@ -37,28 +37,20 @@ static uint32_t current_arr = 0; // Store the current ARR value for TIM6
 static void vLocal_SetSamplingTimer(float samplingFreq) {
     
     // configure TIM6 to be sampling clock for ADC1
-    // APB1 clock is 100 MHz (from SystemClock_Config: APB1_DIV2 with HCLK=200MHz)
-    // TIM6 uses D2PCLK1 which is APB1 = 100 MHz
-    // 
-    // To get samplingFreq, we need:
-    //   timer_freq = 100MHz / (prescaler + 1) / (arr + 1) = samplingFreq
-    // 
-    // For 100kHz sampling: arr = (100MHz / prescaler) / 100kHz - 1
-    // With prescaler = 0 (no prescaler), arr = 100000000 / 100000 - 1 = 999
+    // you can have any sampling frequency for as long as it is 200 kHz
+    uint32_t apb1_freq = 240E6; // MHz
+    uint32_t prescaler = 9;
+    uint32_t arr = 119;
 
-    uint32_t apb1_freq = 100000000; // 100 MHz
-    uint32_t prescaler = 0; // No prescaler
-    current_arr = (apb1_freq / (prescaler + 1)) / (uint32_t)samplingFreq - 1;
-    
     // Stop TIM6 if running
     HAL_TIM_Base_Stop(&htim6);
     
     // Configure TIM6
     TIM_HandleTypeDef htim6_local = htim6;
-    // htim6_local.Init.Prescaler = prescaler;
-    // htim6_local.Init.Period = current_arr;
-    htim6_local.Init.Prescaler = 9;
-    htim6_local.Init.Period = 239;
+    htim6_local.Init.Prescaler = prescaler;
+    htim6_local.Init.Period = arr;
+    // htim6_local.Init.Prescaler = 9;
+    // htim6_local.Init.Period = 239;
     htim6_local.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim6_local.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     HAL_TIM_Base_Init(&htim6_local);
@@ -147,15 +139,7 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
 
     // Set sampling frequency to at least 2x the demodulation frequency
     // For proper sampling, we typically want 5-10x the frequency
-    float samplingFreq = _demodFreq * 10.0f;
-    // Limit sampling frequency to a reasonable range
-    if (samplingFreq > 1000000.0f) {
-        samplingFreq = 1000000.0f;
-    }
-    if (samplingFreq < 10000.0f) {
-        samplingFreq = 10000.0f;
-    }
-    
+    float samplingFreq = 2E5; // 200 kHz
     vLocal_SetSamplingTimer(samplingFreq);
 
     // set diagnostic channel
@@ -183,7 +167,6 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     vLocal_StartADC();
     
     // Wait for DMA completion with timeout
-    // Max time: DEMOD_BUF_LEN / min_sampling_freq = 10000 / 10000 = 1 second
     // Add some margin: 3 seconds timeout
     uint32_t timeout = 3000;
     while (adcDmaComplete == 0 && timeout > 0) {
