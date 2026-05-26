@@ -65,25 +65,27 @@ void vCmd_MainTask(void *pvParams) {
 
     vLL_Set9VRail(1);  
 
-    vSynth_CalculateChannel(SynthChannel_A, 1000, 500);
-    vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
-    vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
-    vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
+    // vSynth_CalculateChannel(SynthChannel_A, 1000, 500);
+    // vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
+    // vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
+    // vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
 
-    vSynth_SetChannelEnabled(SynthChannel_A, 1);
-    vSynth_SetChannelEnabled(SynthChannel_B, 1);
-    vSynth_SetChannelEnabled(SynthChannel_C, 1);
-    vSynth_SetChannelEnabled(SynthChannel_D, 1);
-    uSynth_StartSynth();
+    // vSynth_SetChannelEnabled(SynthChannel_A, 1);
+    // vSynth_SetChannelEnabled(SynthChannel_B, 1);
+    // vSynth_SetChannelEnabled(SynthChannel_C, 1);
+    // vSynth_SetChannelEnabled(SynthChannel_D, 1);
+    // uSynth_StartSynth();
 
-    float demodValA = fDemod_SingleFreq(synthFrequency[0], DemodSrc_Diagnostic, AD5664_CHANNEL_A);    
-    float demodValB = fDemod_SingleFreq(synthFrequency[1], DemodSrc_Diagnostic, AD5664_CHANNEL_B);    
-    float demodValC = fDemod_SingleFreq(synthFrequency[2], DemodSrc_Diagnostic, AD5664_CHANNEL_C);    
-    float demodValD = fDemod_SingleFreq(synthFrequency[3], DemodSrc_Diagnostic, AD5664_CHANNEL_D);    
+    // float demodValA = fDemod_SingleFreq(synthFrequency[0], DemodSrc_Diagnostic, AD5664_CHANNEL_A);    
+    // float demodValB = fDemod_SingleFreq(synthFrequency[1], DemodSrc_Diagnostic, AD5664_CHANNEL_B);    
+    // float demodValC = fDemod_SingleFreq(synthFrequency[2], DemodSrc_Diagnostic, AD5664_CHANNEL_C);    
+    // float demodValD = fDemod_SingleFreq(synthFrequency[3], DemodSrc_Diagnostic, AD5664_CHANNEL_D);    
 
-
-
-
+    AD5664_SetVoltage(AD5664_CHANNEL_A, 500);
+    AD5664_SetVoltage(AD5664_CHANNEL_B, 500);
+    AD5664_SetVoltage(AD5664_CHANNEL_C, 500);
+    AD5664_SetVoltage(AD5664_CHANNEL_D, 500);
+  
     CommCommand_t xCommand;
     
     while (1) {

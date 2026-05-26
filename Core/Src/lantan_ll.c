@@ -3,6 +3,7 @@
 #include "driver_ad5664.h"
 #include "gpio.h"
 #include "main.h"
+#include "stm32h753xx.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_gpio.h"
 #include <stdint.h>
@@ -11,13 +12,61 @@ static uint8_t ledsLocked = 0;
 
 static void vlocal_LEDsOff(void)
 {
-        HAL_GPIO_WritePin(LED0_DBG_GPIO_Port, LED0_DBG_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED1_DBG_GPIO_Port, LED1_DBG_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED2_DBG_GPIO_Port, LED2_DBG_Pin, GPIO_PIN_RESET);
-        
-        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED0_DBG_GPIO_Port, LED0_DBG_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED1_DBG_GPIO_Port, LED1_DBG_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED2_DBG_GPIO_Port, LED2_DBG_Pin, GPIO_PIN_RESET);
+    
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
+}
+
+void vLL_CurrentSourceVoltage(LantanCurrSrc_t _srcCh, LantanSrcVoltage_t _voltage) {
+
+    GPIO_TypeDef * port;
+    uint16_t pin;
+    GPIO_PinState state;
+
+    if(_srcCh == LantanCurrSrc_A) {
+        port = SRC_A_VOLT_SEL_GPIO_Port;
+        pin = SRC_A_VOLT_SEL_Pin;
+    } else if(_srcCh == LantanCurrSrc_B) {
+        port = SRC_B_VOLT_SEL_GPIO_Port;
+        pin = SRC_B_VOLT_SEL_Pin;
+    } else if(_srcCh == LantanCurrSrc_C) {
+        port = SRC_C_VOLT_SEL_GPIO_Port;
+        pin = SRC_C_VOLT_SEL_Pin;
+    } else {
+        port = SRC_D_VOLT_SEL_GPIO_Port;
+        pin = SRC_D_VOLT_SEL_Pin;
+    }
+
+    state = _voltage == LantanSrcVolt5V ? GPIO_PIN_RESET : GPIO_PIN_SET;
+    HAL_GPIO_WritePin(port, pin, state);
+}
+
+void vLL_CurrentSourceRelease(LantanCurrSrc_t _srcCh, LantanSrcRelease_t _release) {
+    
+    GPIO_TypeDef * port;
+    uint16_t pin;
+    GPIO_PinState state;
+
+    if(_srcCh == LantanCurrSrc_A) {
+        port = SRC_A_RELEASE_GPIO_Port;
+        pin = SRC_A_RELEASE_Pin;
+    } else if(_srcCh == LantanCurrSrc_B) {
+        port = SRC_B_RELEASE_GPIO_Port;
+        pin = SRC_B_RELEASE_Pin;
+    } else if(_srcCh == LantanCurrSrc_C) {
+        port = SRC_C_RELEASE_GPIO_Port;
+        pin = SRC_C_RELEASE_Pin;
+    } else {
+        port = SRC_D_RELEASE_GPIO_Port;
+        pin = SRC_D_RELEASE_Pin;
+    }
+
+    state = _release == LantanSrcReleased ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    HAL_GPIO_WritePin(port, pin, state);
 }
 
 void vLL_LockLEDs(uint8_t _lock) {

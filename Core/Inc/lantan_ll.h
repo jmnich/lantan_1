@@ -16,6 +16,25 @@ typedef enum {
     LantanLED_Toggle,
 } LantanLEDMode_t;
 
+typedef enum {
+    LantanCurrSrc_A,
+    LantanCurrSrc_B,
+    LantanCurrSrc_C,
+    LantanCurrSrc_D,
+} LantanCurrSrc_t;
+
+typedef enum {
+    LantanSrcReleased,
+    LantanSrcLocked,
+} LantanSrcRelease_t;
+
+typedef enum {
+    LantanSrcVolt5V,
+    LantanSrcVolt9V,
+} LantanSrcVoltage_t;
+
+void vLL_CurrentSourceVoltage(LantanCurrSrc_t _srcCh, LantanSrcVoltage_t _voltage);
+void vLL_CurrentSourceRelease(LantanCurrSrc_t _srcCh, LantanSrcRelease_t _release);
 void vLL_LockLEDs(uint8_t _lock);
 void vLL_SetLED(LantanLED_t _led, LantanLEDMode_t _mode);
 void vLL_Set9VRail(uint8_t _enabled);
