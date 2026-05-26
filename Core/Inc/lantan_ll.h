@@ -4,6 +4,9 @@
 #include "stm32h7xx_hal.h"
 #include "driver_ad5664.h"
 
+// Reference voltage for ADC conversions (2500 mV)
+extern const float LANTAN_ADC_VREF_mV;
+
 typedef enum {
     LantanLED_Flt,
     LantanLED_Work,
@@ -33,6 +36,7 @@ typedef enum {
     LantanSrcVolt9V,
 } LantanSrcVoltage_t;
 
+float fLL_CurrentSourceVoltMeas(LantanCurrSrc_t _srcCh);
 void vLL_CurrentSourceVoltage(LantanCurrSrc_t _srcCh, LantanSrcVoltage_t _voltage);
 void vLL_CurrentSourceRelease(LantanCurrSrc_t _srcCh, LantanSrcRelease_t _release);
 void vLL_LockLEDs(uint8_t _lock);

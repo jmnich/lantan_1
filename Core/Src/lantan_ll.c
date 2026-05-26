@@ -7,8 +7,12 @@
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_gpio.h"
 #include <stdint.h>
+#include "adc.h"
 
 static uint8_t ledsLocked = 0;
+
+// Reference voltage for ADC conversions (2500 mV)
+const float LANTAN_ADC_VREF_mV = 2500.0f;
 
 static void vlocal_LEDsOff(void)
 {
@@ -19,6 +23,67 @@ static void vlocal_LEDsOff(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET);
+}
+
+float fLL_CurrentSourceVoltMeas(LantanCurrSrc_t _srcCh) {
+    ADC_ChannelConfTypeDef sConfig = {0};
+    uint32_t adcChannel;
+    uint32_t adcValue;
+    float voltage_mV;
+
+    // Select ADC channel based on current source channel
+    switch(_srcCh) {
+        case LantanCurrSrc_A:
+            adcChannel = ADC_CHANNEL_7;  // ADC2 IN7
+            break;
+        case LantanCurrSrc_B:
+            adcChannel = ADC_CHANNEL_4;  // ADC2 IN4
+            break;
+        case LantanCurrSrc_C:
+            adcChannel = ADC_CHANNEL_8;  // ADC2 IN8
+            break;
+        case LantanCurrSrc_D:
+            adcChannel = ADC_CHANNEL_9;  // ADC2 IN9
+            break;
+        default:
+            return 0.0f;
+    }
+
+    // Configure ADC2 channel
+    sConfig.Channel = adcChannel;
+    sConfig.Rank = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset = 0;
+    sConfig.OffsetSignedSaturation = DISABLE;
+    
+    if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
+        return 0.0f;
+    }
+
+    // Start ADC conversion
+    if (HAL_ADC_Start(&hadc2) != HAL_OK) {
+        return 0.0f;
+    }
+
+    // Wait for conversion to complete
+    if (HAL_ADC_PollForConversion(&hadc2, 10) != HAL_OK) {
+        HAL_ADC_Stop(&hadc2);
+        return 0.0f;
+    }
+
+    // Read ADC value
+    adcValue = HAL_ADC_GetValue(&hadc2);
+    
+    // Stop ADC
+    HAL_ADC_Stop(&hadc2);
+
+    // Convert ADC value to voltage in mV
+    // ADC is 16-bit: voltage = (adcValue * Vref) / (2^16 - 1)
+    voltage_mV = (adcValue * LANTAN_ADC_VREF_mV) / 65535.0f;
+
+    return voltage_mV;
 }
 
 void vLL_CurrentSourceVoltage(LantanCurrSrc_t _srcCh, LantanSrcVoltage_t _voltage) {
