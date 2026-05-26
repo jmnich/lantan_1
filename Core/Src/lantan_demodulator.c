@@ -1,5 +1,6 @@
 #include "lantan_demodulator.h"
 
+#include "projdefs.h"
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
 #include "lantan_synth.h"
@@ -12,6 +13,11 @@
 #include "stm32h7xx_hal_tim.h"
 #include "string.h"
 #include "math.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
 
 #define DEMOD_BUF_LEN   10000
 uint32_t demodBuf[DEMOD_BUF_LEN];
@@ -49,28 +55,22 @@ static void vLocal_SetSamplingTimer(float samplingFreq) {
     // Configure TIM6
     TIM_HandleTypeDef htim6_local = htim6;
     htim6_local.Init.Prescaler = prescaler;
-    htim6_local.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim6_local.Init.Period = current_arr;
+    htim6_local.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim6_local.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-    
-    if (HAL_TIM_Base_Init(&htim6_local) != HAL_OK) {
-        Error_Handler();
-    }
+    HAL_TIM_Base_Init(&htim6_local);
     
     // Configure TIM6 TRGO to trigger ADC on update event
     TIM_MasterConfigTypeDef sMasterConfig = {0};
     sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
     sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&htim6_local, &sMasterConfig) != HAL_OK) {
-        Error_Handler();
-    }
-
+    HAL_TIMEx_MasterConfigSynchronization(&htim6_local, &sMasterConfig);
+    
     // Update the global handle
     htim6 = htim6_local;
 }   
 
-static void vLocal_StartADC(void) {
-
+static void vLocal_InitADC(void) {
     // set ADC1 to fill the demod buff in DMA mode
     // 16 bit resolution
     
@@ -84,7 +84,7 @@ static void vLocal_StartADC(void) {
     hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
     hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
     hadc1.Init.LowPowerAutoWait = DISABLE;
-    hadc1.Init.ContinuousConvMode = DISABLE;
+    hadc1.Init.ContinuousConvMode = ENABLE;
     hadc1.Init.NbrOfConversion = 1;
     hadc1.Init.DiscontinuousConvMode = DISABLE;
     hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
@@ -95,19 +95,15 @@ static void vLocal_StartADC(void) {
     hadc1.Init.OversamplingMode = DISABLE;
     hadc1.Init.Oversampling.Ratio = 1;
     
-    if (HAL_ADC_Init(&hadc1) != HAL_OK) {
-        Error_Handler();
-    }
-    
+    HAL_ADC_Init(&hadc1);
+}
+
+static void vLocal_StartADC(void) {    
     // Start ADC with DMA first - it will wait for external trigger
-    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)demodBuf, DEMOD_BUF_LEN) != HAL_OK) {
-        Error_Handler();
-    }
-    
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)demodBuf, DEMOD_BUF_LEN);
+
     // Start TIM6 to generate periodic triggers
-    if (HAL_TIM_Base_Start_IT(&htim6) != HAL_OK) {
-        Error_Handler();
-    }
+    HAL_TIM_Base_Start_IT(&htim6);
 }
 
 float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _diagCh) {
@@ -117,6 +113,8 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     HAL_ADC_Stop_DMA(&hadc1);
     HAL_TIM_Base_Stop(&htim6);
     
+    vLocal_InitADC();
+
     // Set sampling frequency to at least 2x the demodulation frequency
     // For proper sampling, we typically want 5-10x the frequency
     float samplingFreq = _demodFreq * 10.0f;
@@ -148,10 +146,7 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     sConfig.OffsetNumber = ADC_OFFSET_NONE;
     sConfig.Offset = 0;
     sConfig.OffsetSignedSaturation = DISABLE;
-    
-    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
-        Error_Handler();
-    }
+    HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
     // record data into buffer in a blocking fashion, so just launch ADC and timer
     // and wait until DMA is done
@@ -160,10 +155,10 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     // Wait for DMA completion with timeout
     // Max time: DEMOD_BUF_LEN / min_sampling_freq = 10000 / 10000 = 1 second
     // Add some margin: 3 seconds timeout
-    uint32_t timeout = 3000000; // ~3 seconds at 400MHz CPU
+    uint32_t timeout = 3000;
     while (adcDmaComplete == 0 && timeout > 0) {
         timeout--;
-        __NOP();
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
     
     // Check if timeout occurred
