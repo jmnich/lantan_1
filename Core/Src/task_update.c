@@ -63,17 +63,12 @@ void vUpdate_MainTask(void *pvParams) {
 
     while(1) {
         // repeat this loop as often as possible
-        // TODO - establish values for all fields of update message
         // Update the global variables above with current values from hardware
         g_Update_PowerGoodFlag = 1;
         g_Update_ChannelA_Active = synthChannelActive[0];
         g_Update_ChannelB_Active = synthChannelActive[1];
         g_Update_ChannelC_Active = synthChannelActive[2];
         g_Update_ChannelD_Active = synthChannelActive[3];
-        g_Update_DutVoltageA_uV = 1E6;
-        g_Update_DutVoltageB_uV = 1E6;
-        g_Update_DutVoltageC_uV = 1E6;
-        g_Update_DutVoltageD_uV = 1E6;
         g_Update_DutCurrentA_uA = (uint32_t)((float)synthOffsets[0] * 0.45 * 1000.0);
         g_Update_DutCurrentB_uA = (uint32_t)((float)synthOffsets[1] * 0.45 * 1000.0);
         g_Update_DutCurrentC_uA = (uint32_t)((float)synthOffsets[2] * 0.45 * 1000.0);
@@ -85,7 +80,6 @@ void vUpdate_MainTask(void *pvParams) {
         g_Update_DetectorSensitivity = currentDetectorRange + 1;
         g_Update_DetectorGain = currentDetectorGain + 1;        
         
-        // TODO - calculate demod for all channels
         uint32_t response[4] = {0};
         
         if(synthChannelActive[0]) {
@@ -108,6 +102,18 @@ void vUpdate_MainTask(void *pvParams) {
         g_Update_DutResponseB = response[1];
         g_Update_DutResponseC = response[2];
         g_Update_DutResponseD = response[3];
+
+        // TODO 
+        // measure and filter voltage for SRC A-D
+        // SRC_V_A - 
+        // SRC_V_B - 
+        // SRC_V_C -
+        // SRC_V_D - 
+
+        g_Update_DutVoltageA_uV = 1E6;
+        g_Update_DutVoltageB_uV = 1E6;
+        g_Update_DutVoltageC_uV = 1E6;
+        g_Update_DutVoltageD_uV = 1E6;
 
         sendUpdate();
         
