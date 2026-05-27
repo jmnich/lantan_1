@@ -1,6 +1,7 @@
 #include "task_comm.h"
 
 #include "FreeRTOS.h"
+#include "lantan_ll.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
@@ -73,6 +74,9 @@ void vComm_MainTask(void *pvParams) {
     // Initialize USB device
     MX_USB_DEVICE_Init();
 
+    // Purge any initial garbage data in RX buffer
+    ulCommRxPos = 0;
+
     // Main loop
     while (1) {
         // Process any received data
@@ -103,6 +107,9 @@ void vComm_ProcessRxData(void) {
                 if (xComm_ParseCommand((const char *)ucCommRxBuffer, &xCommand) == pdTRUE) {
                     // Send to queue
                     xComm_SendCommand(&xCommand);
+                    vLL_SetLED(LantanLED_Flt, LantanLED_Off);
+                } else {
+                    vLL_SetLED(LantanLED_Flt, LantanLED_On);
                 }
                 
                 // Move remaining data to the beginning

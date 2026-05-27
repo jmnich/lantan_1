@@ -1,6 +1,7 @@
 #include "task_update.h"
 #include "lantan_synth.h"
 #include "lantan_demodulator.h"
+#include "task_cmd_exec.h"
 #include <math.h>
 
 // Static global variables for UPDATE message fields
@@ -73,22 +74,34 @@ void vUpdate_MainTask(void *pvParams) {
         g_Update_DutVoltageB_uV = 1E6;
         g_Update_DutVoltageC_uV = 1E6;
         g_Update_DutVoltageD_uV = 1E6;
-        g_Update_DutCurrentA_uA = dutCurrentDC[0];
-        g_Update_DutCurrentB_uA = dutCurrentDC[1];
-        g_Update_DutCurrentC_uA = dutCurrentDC[2];
-        g_Update_DutCurrentD_uA = dutCurrentDC[3];
-        g_Update_DutModAmplitudeA_uA = dutCurrentModulation[0];
-        g_Update_DutModAmplitudeB_uA = dutCurrentModulation[1];
-        g_Update_DutModAmplitudeC_uA = dutCurrentModulation[2];
-        g_Update_DutModAmplitudeD_uA = dutCurrentModulation[3];        
-        g_Update_DetectorSensitivity = currentDetectorRange;
-        g_Update_DetectorGain = currentDetectorGain;        
+        g_Update_DutCurrentA_uA = (uint32_t)((float)synthOffsets[0] * 0.45 * 1000.0);
+        g_Update_DutCurrentB_uA = (uint32_t)((float)synthOffsets[1] * 0.45 * 1000.0);
+        g_Update_DutCurrentC_uA = (uint32_t)((float)synthOffsets[2] * 0.45 * 1000.0);
+        g_Update_DutCurrentD_uA = (uint32_t)((float)synthOffsets[3] * 0.45 * 1000.0);
+        g_Update_DutModAmplitudeA_uA = (uint32_t)(((float)synthPkPkMax[0] * (float)modulationAmpsSetByUser[0] / 100.0) * 0.45 * 1000.0);
+        g_Update_DutModAmplitudeB_uA = (uint32_t)(((float)synthPkPkMax[1] * (float)modulationAmpsSetByUser[1] / 100.0) * 0.45 * 1000.0);
+        g_Update_DutModAmplitudeC_uA = (uint32_t)(((float)synthPkPkMax[2] * (float)modulationAmpsSetByUser[2] / 100.0) * 0.45 * 1000.0);
+        g_Update_DutModAmplitudeD_uA = (uint32_t)(((float)synthPkPkMax[3] * (float)modulationAmpsSetByUser[3] / 100.0) * 0.45 * 1000.0);
+        g_Update_DetectorSensitivity = currentDetectorRange + 1;
+        g_Update_DetectorGain = currentDetectorGain + 1;        
         
         // TODO - calculate demod for all channels
         uint32_t response[4] = {0};
         
         if(synthChannelActive[0]) {
-            response[0] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[0], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E5));
+            response[0] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[0], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+        }
+
+        if(synthChannelActive[1]) {
+            response[1] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[1], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+        }
+
+        if(synthChannelActive[2]) {
+            response[2] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[2], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+        }
+
+        if(synthChannelActive[3]) {
+            response[3] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[3], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
         }
 
         g_Update_DutResponseA = response[0];
@@ -96,9 +109,15 @@ void vUpdate_MainTask(void *pvParams) {
         g_Update_DutResponseC = response[2];
         g_Update_DutResponseD = response[3];
 
-        // sendUpdate();
+        sendUpdate();
         
-        // Small delay to prevent CPU hogging
-        // vTaskDelay(pdMS_TO_TICKS(100));
+        if((synthChannelActive[0] == 0) && 
+            (synthChannelActive[1] == 0) && 
+            (synthChannelActive[2] == 0) &&     
+            (synthChannelActive[3] == 0)) {
+
+            // Small delay to prevent CPU hogging
+            vTaskDelay(pdMS_TO_TICKS(150));
+        }
     }
 }

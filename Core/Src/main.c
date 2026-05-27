@@ -133,9 +133,9 @@ int main(void)
   static TaskHandle_t vCmdExecTaskHandle;
   static TaskHandle_t vUpdateTaskHandle;
 
-  xTaskCreate(vComm_MainTask, "commMain", 2048, NULL, 1, &vCommMainTaskHandle);
-  xTaskCreate(vCmd_MainTask, "cmdExec", 2048, NULL, 2, &vCmdExecTaskHandle);
-  xTaskCreate(vUpdate_MainTask, "update", 2048, NULL, 2, &vUpdateTaskHandle);
+  xTaskCreate(vComm_MainTask, "commMain", 2048, NULL, 2, &vCommMainTaskHandle);
+  xTaskCreate(vCmd_MainTask, "cmdExec", 2048, NULL, 1, &vCmdExecTaskHandle);
+  xTaskCreate(vUpdate_MainTask, "update", 2048, NULL, 1, &vUpdateTaskHandle);
 
   vTaskStartScheduler();
   /* USER CODE END 2 */

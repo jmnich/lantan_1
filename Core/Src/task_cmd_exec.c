@@ -10,6 +10,10 @@
 #include "projdefs.h"
 #include "task.h"
 #include "queue.h"
+#include <math.h>
+
+uint32_t modulationAmpsSetByUser[4] = {0}; // [%]
+
 
 /**
  * @brief Handle INFO command
@@ -51,13 +55,22 @@ void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
     // pxCommand->args[0-3]: Channel A-D active flags (0=off, 1=on)
     // pxCommand->args[4-7]: Modulation amplitude A-D in % (0-100)
     
-    vSynth_CalculateChannel(SynthChannel_A, 446, 112);
-    // vSynth_CalculateChannel(SynthChannel_A, 50, 10);
-    vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
-    vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
-    vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
+    modulationAmpsSetByUser[0] = pxCommand->args[4];
+    modulationAmpsSetByUser[1] = pxCommand->args[5];
+    modulationAmpsSetByUser[2] = pxCommand->args[6];
+    modulationAmpsSetByUser[3] = pxCommand->args[7];
 
-    if(pxCommand->args[4] == 0) { 
+    uint32_t pkpkModulation[4];
+    for(int i = 0; i < 4; i++) {
+        pkpkModulation[i] = (uint32_t)roundf((float)synthPkPkMax[i] * ((float)modulationAmpsSetByUser[i] / (float)100));
+    }
+
+    vSynth_CalculateChannel(SynthChannel_A, synthOffsets[0], pkpkModulation[0]);
+    vSynth_CalculateChannel(SynthChannel_B, synthOffsets[1], pkpkModulation[1]);
+    vSynth_CalculateChannel(SynthChannel_C, synthOffsets[2], pkpkModulation[2]);
+    vSynth_CalculateChannel(SynthChannel_D, synthOffsets[3], pkpkModulation[3]);
+
+    if(pxCommand->args[0] == 0) { 
         vSynth_SetChannelEnabled(SynthChannel_A, 0);
         vLL_CurrentSourceRelease(LantanCurrSrc_A, LantanSrcLocked);
     }
@@ -66,7 +79,7 @@ void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
         vLL_CurrentSourceRelease(LantanCurrSrc_A, LantanSrcReleased);
     }
 
-    if(pxCommand->args[5] == 0) { 
+    if(pxCommand->args[1] == 0) { 
         vSynth_SetChannelEnabled(SynthChannel_B, 0);
         vLL_CurrentSourceRelease(LantanCurrSrc_B, LantanSrcLocked);
     }
@@ -75,7 +88,7 @@ void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
         vLL_CurrentSourceRelease(LantanCurrSrc_B, LantanSrcReleased);
     }
 
-    if(pxCommand->args[6] == 0) { 
+    if(pxCommand->args[2] == 0) { 
         vSynth_SetChannelEnabled(SynthChannel_C, 0);
         vLL_CurrentSourceRelease(LantanCurrSrc_C, LantanSrcLocked);
     }
@@ -84,7 +97,7 @@ void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
         vLL_CurrentSourceRelease(LantanCurrSrc_C, LantanSrcReleased);
     }
 
-    if(pxCommand->args[7] == 0) { 
+    if(pxCommand->args[3] == 0) { 
         vSynth_SetChannelEnabled(SynthChannel_D, 0);
         vLL_CurrentSourceRelease(LantanCurrSrc_D, LantanSrcLocked);
     }
@@ -106,7 +119,7 @@ void vCmd_HandleDetector(const CommCommand_t *pxCommand) {
     // pxCommand->args[0]: Detector sensitivity (1, 2, 3, or 4)
     // pxCommand->args[1]: Detector gain (1, 2, 3, or 4)
     
-    vLL_DetectorConfigure((LantanDetectorRange_t)pxCommand->args[0], (LantanDetectorGain_t)pxCommand->args[1]);
+    vLL_DetectorConfigure((LantanDetectorRange_t)pxCommand->args[0] - 1, (LantanDetectorGain_t)pxCommand->args[1] - 1);
 }
 
 /**

@@ -5,6 +5,8 @@
 #include "task_comm.h"
 #include "driver_ad5664.h"
 
+extern uint32_t modulationAmpsSetByUser[]; // [%]
+
 // Function prototypes
 void vCmd_MainTask(void *pvParams);
 

@@ -11,8 +11,8 @@
 #define CHCNT 4
 #define SYNTH_BUF_LEN 4000
 
-float dutCurrentDC[CHCNT] = {0};            // [mA] DC working point
-float dutCurrentModulation[CHCNT] = {0};    // [mA] pkpk modulation
+// float dutCurrentDC[CHCNT] = {0};            // [mA] DC working point
+// float dutCurrentModulation[CHCNT] = {0};    // [mA] pkpk modulation
 
 uint8_t synthChannelActive[CHCNT] = {0};
 static uint32_t synthBuffer[CHCNT][SYNTH_BUF_LEN] __attribute__((section(".freertos_heap")));
@@ -22,8 +22,12 @@ const uint32_t maxSampleFrequencyPerCh = 75000;
 const uint32_t samplingFrequency = maxSampleFrequencyPerCh;
 const uint32_t totalSPITransmissionsFrequency = samplingFrequency * 4;
 
+// HARD CONFIGS
 // frequencies of sinewaves for different channels
 const float synthFrequency[] = {2500,1000,1500,500};
+const uint32_t synthOffsets[] = {446, 500, 500, 500}; // [mV]
+const uint32_t synthPkPkMax[] = {200, 200, 200, 200}; // [mV]
+
 
 void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pkpk) {
     // Calculate number of samples for one full period
