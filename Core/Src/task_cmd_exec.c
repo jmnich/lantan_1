@@ -35,9 +35,40 @@ void vCmd_HandleVoltDC(const CommCommand_t *pxCommand) {
     AD5664_SetVoltage(AD5664_CHANNEL_D, pxCommand->args[3]);
     
     // Send acknowledgment
-    vComm_Printf("VOLT_DC ACK:%lu;%lu;%lu;%lu\n", 
+    vComm_Printf("VOLT_DC ACK:%lu|%lu|%lu|%lu\r\n", 
                  pxCommand->args[0], pxCommand->args[1],
                  pxCommand->args[2], pxCommand->args[3]);
+}
+
+/**
+ * @brief Handle MODULATOR command
+ *        Configures modulator channels and amplitudes
+ *        Args: channel A active (0/1)|channel B active (0/1)|channel C active (0/1)|channel D active (0/1)|
+ *              mod amplitude A (%)|mod amplitude B (%)|mod amplitude C (%)|mod amplitude D (%)
+ * @param pxCommand Pointer to the command structure
+ */
+void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
+    // TODO: Implement business logic here
+    // pxCommand->args[0-3]: Channel A-D active flags (0=off, 1=on)
+    // pxCommand->args[4-7]: Modulation amplitude A-D in % (0-100)
+    
+    // Send acknowledgment
+    vComm_Printf("MODULATOR ACK\r\n");
+}
+
+/**
+ * @brief Handle DETECTOR command
+ *        Configures detector sensitivity and gain
+ *        Args: detector sensitivity (1-4)|detector gain (1-4)
+ * @param pxCommand Pointer to the command structure
+ */
+void vCmd_HandleDetector(const CommCommand_t *pxCommand) {
+    // TODO: Implement business logic here
+    // pxCommand->args[0]: Detector sensitivity (1, 2, 3, or 4)
+    // pxCommand->args[1]: Detector gain (1, 2, 3, or 4)
+    
+    // Send acknowledgment
+    vComm_Printf("DETECTOR ACK\r\n");
 }
 
 /**
@@ -83,11 +114,19 @@ void vCmd_MainTask(void *pvParams) {
                 case COMM_CMD_VOLT_DC:
                     vCmd_HandleVoltDC(&xCommand);
                     break;
+                
+                case COMM_CMD_MODULATOR:
+                    vCmd_HandleModulator(&xCommand);
+                    break;
+                
+                case COMM_CMD_DETECTOR:
+                    vCmd_HandleDetector(&xCommand);
+                    break;
                     
                 case COMM_CMD_INVALID:
                 default:
                     // Invalid command - send error
-                    vComm_Printf("ERROR:Invalid command\n");
+                    vComm_Printf("ERROR:Invalid command\r\n");
                     break;
             }
         }

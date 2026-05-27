@@ -28,14 +28,18 @@ static SemaphoreHandle_t xCommTxSemaphore = NULL;
 static const char *pcCommCommandNames[COMM_CMD_MAX] = {
     "INVALID",
     "INFO",
-    "VOLT_DC"
+    "VOLT_DC",
+    "MODULATOR",
+    "DETECTOR"
 };
 
 // String to command ID mapping
 static const char *pcCommCommandStrings[COMM_CMD_MAX] = {
     "",
     "INFO",
-    "VOLT_DC"
+    "VOLT_DC",
+    "MODULATOR",
+    "DETECTOR"
 };
 
 // Forward declarations
@@ -182,7 +186,7 @@ static CommCommandID_t eComm_ParseCommandID(const char *pcCmdStr) {
 
 /**
  * @brief Parse a complete command string
- * @param pcBuffer Command string buffer (format: "CMD;arg1;arg2;arg3;arg4\n")
+ * @param pcBuffer Command string buffer (format: "CMD|arg1|arg2|arg3|arg4\r\n")
  * @param pxCommand Pointer to command struct to populate
  * @return pdTRUE if parsing succeeded, pdFALSE otherwise
  */
@@ -196,8 +200,8 @@ static BaseType_t xComm_ParseCommand(const char *pcBuffer, CommCommand_t *pxComm
     strncpy(acBufferCopy, pcBuffer, sizeof(acBufferCopy) - 1);
     acBufferCopy[sizeof(acBufferCopy) - 1] = '\0';
     
-    // Split the string by semicolons
-    char *pcToken = strtok(acBufferCopy, ";");
+    // Split the string by pipe character (protocol separator)
+    char *pcToken = strtok(acBufferCopy, "|");
     
     // First token should be the command ID
     if (pcToken == NULL) {
@@ -213,7 +217,7 @@ static BaseType_t xComm_ParseCommand(const char *pcBuffer, CommCommand_t *pxComm
     
     // Parse the remaining 32 arguments
     for (uint32_t i = 0; i < 32; i++) {
-        pcToken = strtok(NULL, ";\n\r");
+        pcToken = strtok(NULL, "|\n\r");
         if (pcToken == NULL) {
             // Missing arguments - default to 0
             pxCommand->args[i] = 0;

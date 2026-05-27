@@ -12,6 +12,8 @@ typedef enum {
     COMM_CMD_INVALID = 0,
     COMM_CMD_INFO,
     COMM_CMD_VOLT_DC,
+    COMM_CMD_MODULATOR,
+    COMM_CMD_DETECTOR,
     COMM_CMD_MAX
 } CommCommandID_t;
 
