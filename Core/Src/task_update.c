@@ -2,10 +2,58 @@
 #include "lantan_synth.h"
 #include "lantan_demodulator.h"
 #include "task_cmd_exec.h"
+#include "lantan_ll.h"
+#include "adc.h"
 #include <math.h>
 
 // Static global variables for UPDATE message fields
 static volatile uint8_t g_Update_PowerGoodFlag = 0;
+
+// Voltage measurement: circular buffers for 10-sample moving average
+#define VOLTAGE_FILTER_SAMPLES 10
+static uint32_t voltageSamples[4][VOLTAGE_FILTER_SAMPLES] = {0};
+static uint8_t voltageSampleIndex[4] = {0};
+static uint8_t voltageSampleCount[4] = {0};
+static uint32_t voltageSum[4] = {0};
+
+// Helper to read ADC2 channel and convert to microvolts
+static uint32_t readADC2Channel(uint32_t channel) {
+    ADC_ChannelConfTypeDef sConfig = {0};
+    uint32_t adcValue;
+    
+    sConfig.Channel = channel;
+    sConfig.Rank = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset = 0;
+    sConfig.OffsetSignedSaturation = DISABLE;
+    
+    if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
+        return 0;
+    }
+    
+    if (HAL_ADC_Start(&hadc2) != HAL_OK) {
+        return 0;
+    }
+    
+    if (HAL_ADC_PollForConversion(&hadc2, 10) != HAL_OK) {
+        HAL_ADC_Stop(&hadc2);
+        return 0;
+    }
+    
+    adcValue = HAL_ADC_GetValue(&hadc2);
+    HAL_ADC_Stop(&hadc2);
+    
+    // Convert to voltage in mV: (adcValue * Vref_mV) / 65535
+    // Then apply correction: u * 2 - 240 mV
+    // Return in microvolts
+    float voltage_mV = (adcValue * LANTAN_ADC_VREF_mV) / 65535.0f;
+    float corrected_mV = voltage_mV * 2.0f - 240.0f;
+    return (uint32_t)(corrected_mV * 1000.0f);
+}
+
+// Static global variables for UPDATE message fields
 static volatile uint8_t g_Update_ChannelA_Active = 0;
 static volatile uint8_t g_Update_ChannelB_Active = 0;
 static volatile uint8_t g_Update_ChannelC_Active = 0;
@@ -103,17 +151,44 @@ void vUpdate_MainTask(void *pvParams) {
         g_Update_DutResponseC = response[2];
         g_Update_DutResponseD = response[3];
 
-        // TODO 
-        // measure and filter voltage for SRC A-D
-        // SRC_V_A - 
-        // SRC_V_B - 
-        // SRC_V_C -
-        // SRC_V_D - 
-
-        g_Update_DutVoltageA_uV = 1E6;
-        g_Update_DutVoltageB_uV = 1E6;
-        g_Update_DutVoltageC_uV = 1E6;
-        g_Update_DutVoltageD_uV = 1E6;
+        // Measure and filter voltage for SRC A-D
+        // SRC_V_A - ADC2 IN7, SRC_V_B - ADC2 IN4, SRC_V_C - ADC2 IN8, SRC_V_D - ADC2 IN9
+        static const uint32_t adcChannels[4] = {
+            ADC_CHANNEL_7,  // A
+            ADC_CHANNEL_4,  // B
+            ADC_CHANNEL_8,  // C
+            ADC_CHANNEL_9   // D
+        };
+        
+        for (int ch = 0; ch < 4; ch++) {
+            uint32_t sample = readADC2Channel(adcChannels[ch]);
+            uint8_t idx = voltageSampleIndex[ch];
+            
+            // If we have less than 10 samples, add to sum
+            if (voltageSampleCount[ch] < VOLTAGE_FILTER_SAMPLES) {
+                voltageSampleCount[ch]++;
+                voltageSum[ch] += sample;
+            } else {
+                // Replace oldest sample in circular buffer
+                voltageSum[ch] -= voltageSamples[ch][idx];
+                voltageSum[ch] += sample;
+            }
+            
+            // Store sample in circular buffer
+            voltageSamples[ch][idx] = sample;
+            voltageSampleIndex[ch] = (idx + 1) % VOLTAGE_FILTER_SAMPLES;
+            
+            // Calculate average (use last sample if not enough collected yet)
+            if (voltageSampleCount[ch] > 0) {
+                uint32_t avg = voltageSum[ch] / voltageSampleCount[ch];
+                switch(ch) {
+                    case 0: g_Update_DutVoltageA_uV = avg; break;
+                    case 1: g_Update_DutVoltageB_uV = avg; break;
+                    case 2: g_Update_DutVoltageC_uV = avg; break;
+                    case 3: g_Update_DutVoltageD_uV = avg; break;
+                }
+            }
+        }
 
         sendUpdate();
         
