@@ -3,6 +3,7 @@
 
 #include "driver_ad5664.h"
 #include "stm32h753xx.h"
+#include "stm32h7xx_hal_tim.h"
 #include "tim.h"
 #include "spi.h"
 #include "gpio.h"
@@ -60,6 +61,8 @@ void vSynth_SetChannelEnabled(LantanSynthCh_t _ch, uint8_t _enable) {
 
 uint8_t uSynth_StartSynth(void) {
     
+    HAL_TIM_Base_Stop_IT(&htim7);
+
     uint8_t activeChCounter = 0;
     for(int i = 0; i < CHCNT; i++) if(synthChannelActive[i]) activeChCounter++;
 

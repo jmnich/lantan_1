@@ -48,12 +48,52 @@ void vCmd_HandleVoltDC(const CommCommand_t *pxCommand) {
  * @param pxCommand Pointer to the command structure
  */
 void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
-    // TODO: Implement business logic here
     // pxCommand->args[0-3]: Channel A-D active flags (0=off, 1=on)
     // pxCommand->args[4-7]: Modulation amplitude A-D in % (0-100)
     
-    // Send acknowledgment
-    vComm_Printf("MODULATOR ACK\r\n");
+    vSynth_CalculateChannel(SynthChannel_A, 446, 112);
+    // vSynth_CalculateChannel(SynthChannel_A, 50, 10);
+    vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
+    vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
+    vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
+
+    if(pxCommand->args[4] == 0) { 
+        vSynth_SetChannelEnabled(SynthChannel_A, 0);
+        vLL_CurrentSourceRelease(LantanCurrSrc_A, LantanSrcLocked);
+    }
+    else {
+        vSynth_SetChannelEnabled(SynthChannel_A, 1);
+        vLL_CurrentSourceRelease(LantanCurrSrc_A, LantanSrcReleased);
+    }
+
+    if(pxCommand->args[5] == 0) { 
+        vSynth_SetChannelEnabled(SynthChannel_B, 0);
+        vLL_CurrentSourceRelease(LantanCurrSrc_B, LantanSrcLocked);
+    }
+    else {
+        vSynth_SetChannelEnabled(SynthChannel_B, 1);
+        vLL_CurrentSourceRelease(LantanCurrSrc_B, LantanSrcReleased);
+    }
+
+    if(pxCommand->args[6] == 0) { 
+        vSynth_SetChannelEnabled(SynthChannel_C, 0);
+        vLL_CurrentSourceRelease(LantanCurrSrc_C, LantanSrcLocked);
+    }
+    else {
+        vSynth_SetChannelEnabled(SynthChannel_C, 1);
+        vLL_CurrentSourceRelease(LantanCurrSrc_C, LantanSrcReleased);
+    }
+
+    if(pxCommand->args[7] == 0) { 
+        vSynth_SetChannelEnabled(SynthChannel_D, 0);
+        vLL_CurrentSourceRelease(LantanCurrSrc_D, LantanSrcLocked);
+    }
+    else {
+        vSynth_SetChannelEnabled(SynthChannel_D, 1);
+        vLL_CurrentSourceRelease(LantanCurrSrc_D, LantanSrcReleased);
+    }
+
+    uSynth_StartSynth();
 }
 
 /**
@@ -63,12 +103,10 @@ void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
  * @param pxCommand Pointer to the command structure
  */
 void vCmd_HandleDetector(const CommCommand_t *pxCommand) {
-    // TODO: Implement business logic here
     // pxCommand->args[0]: Detector sensitivity (1, 2, 3, or 4)
     // pxCommand->args[1]: Detector gain (1, 2, 3, or 4)
     
-    // Send acknowledgment
-    vComm_Printf("DETECTOR ACK\r\n");
+    vLL_DetectorConfigure((LantanDetectorRange_t)pxCommand->args[0], (LantanDetectorGain_t)pxCommand->args[1]);
 }
 
 /**
