@@ -126,6 +126,7 @@ int main(void)
   MX_ADC1_Init();
   MX_ADC2_Init();
   MX_TIM6_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
   vLL_LockLEDs(0); // unlock leds
 

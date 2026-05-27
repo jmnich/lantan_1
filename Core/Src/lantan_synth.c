@@ -1,6 +1,5 @@
 #include "lantan_synth.h"
 #include <math.h>
-
 #include "driver_ad5664.h"
 #include "stm32h753xx.h"
 #include "stm32h7xx_hal_tim.h"

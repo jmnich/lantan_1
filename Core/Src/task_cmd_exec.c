@@ -10,6 +10,7 @@
 #include "projdefs.h"
 #include "task.h"
 #include "queue.h"
+#include "task_update.h"
 #include <math.h>
 
 uint32_t modulationAmpsSetByUser[4] = {0}; // [%]
@@ -55,6 +56,8 @@ void vCmd_HandleModulator(const CommCommand_t *pxCommand) {
     // pxCommand->args[0-3]: Channel A-D active flags (0=off, 1=on)
     // pxCommand->args[4-7]: Modulation amplitude A-D in % (0-100)
     
+    if(powerGoodFlag != 1) return;
+
     modulationAmpsSetByUser[0] = pxCommand->args[4];
     modulationAmpsSetByUser[1] = pxCommand->args[5];
     modulationAmpsSetByUser[2] = pxCommand->args[6];

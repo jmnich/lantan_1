@@ -6,6 +6,41 @@
 #include "adc.h"
 #include <math.h>
 
+uint32_t powerGoodFlag = 0;
+
+// Helper to read ADC3 channel and convert to millivolts
+static uint32_t readADC3Channel_mV(uint32_t channel) {
+    ADC_ChannelConfTypeDef sConfig = {0};
+    uint32_t adcValue;
+    
+    sConfig.Channel = channel;
+    sConfig.Rank = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset = 0;
+    sConfig.OffsetSignedSaturation = DISABLE;
+    
+    if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK) {
+        return 0;
+    }
+    
+    if (HAL_ADC_Start(&hadc3) != HAL_OK) {
+        return 0;
+    }
+    
+    if (HAL_ADC_PollForConversion(&hadc3, 10) != HAL_OK) {
+        HAL_ADC_Stop(&hadc3);
+        return 0;
+    }
+    
+    adcValue = HAL_ADC_GetValue(&hadc3);
+    HAL_ADC_Stop(&hadc3);
+    
+    // Convert to millivolts: (adcValue * Vref_mV) / 65535
+    return (uint32_t)((adcValue * LANTAN_ADC_VREF_mV) / 65535.0f);
+}
+
 // Static global variables for UPDATE message fields
 static volatile uint8_t g_Update_PowerGoodFlag = 0;
 
@@ -112,7 +147,20 @@ void vUpdate_MainTask(void *pvParams) {
     while(1) {
         // repeat this loop as often as possible
         // Update the global variables above with current values from hardware
-        g_Update_PowerGoodFlag = 1;
+
+        // Power good flag: 1 if voltage at ADC3 IN0 >= 0.8V, otherwise 0
+        uint32_t voltage_mV = readADC3Channel_mV(ADC_CHANNEL_0);
+        powerGoodFlag = (voltage_mV >= 1000) ? 1 : 0;
+
+        // just a little safety to avoid blowing up the USB
+        if(powerGoodFlag != 1) {
+            vLL_CurrentSourceRelease(LantanCurrSrc_A, LantanSrcLocked);
+            vLL_CurrentSourceRelease(LantanCurrSrc_B, LantanSrcLocked);
+            vLL_CurrentSourceRelease(LantanCurrSrc_C, LantanSrcLocked);
+            vLL_CurrentSourceRelease(LantanCurrSrc_D, LantanSrcLocked);
+        }         
+
+        g_Update_PowerGoodFlag = powerGoodFlag;
         g_Update_ChannelA_Active = synthChannelActive[0];
         g_Update_ChannelB_Active = synthChannelActive[1];
         g_Update_ChannelC_Active = synthChannelActive[2];
