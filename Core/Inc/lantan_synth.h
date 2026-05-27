@@ -11,7 +11,11 @@ typedef enum {
     SynthChannel_D = 3,
 } LantanSynthCh_t;
 
+extern float dutCurrentDC[];           
+extern float dutCurrentModulation[];    
+
 extern const float synthFrequency[];
+extern uint8_t synthChannelActive[];
 
 void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pkpk);
 void vSynth_SetChannelEnabled(LantanSynthCh_t _ch, uint8_t _enable);

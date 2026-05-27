@@ -1,4 +1,7 @@
 #include "task_update.h"
+#include "lantan_synth.h"
+#include "lantan_demodulator.h"
+#include <math.h>
 
 // Static global variables for UPDATE message fields
 static volatile uint8_t g_Update_PowerGoodFlag = 0;
@@ -62,34 +65,40 @@ void vUpdate_MainTask(void *pvParams) {
         // TODO - establish values for all fields of update message
         // Update the global variables above with current values from hardware
         g_Update_PowerGoodFlag = 1;
-        g_Update_ChannelA_Active = 1;
-        g_Update_ChannelB_Active = 1;
-        g_Update_ChannelC_Active = 1;
-        g_Update_ChannelD_Active = 1;
+        g_Update_ChannelA_Active = synthChannelActive[0];
+        g_Update_ChannelB_Active = synthChannelActive[1];
+        g_Update_ChannelC_Active = synthChannelActive[2];
+        g_Update_ChannelD_Active = synthChannelActive[3];
         g_Update_DutVoltageA_uV = 1E6;
         g_Update_DutVoltageB_uV = 1E6;
         g_Update_DutVoltageC_uV = 1E6;
         g_Update_DutVoltageD_uV = 1E6;
-        g_Update_DutCurrentA_uA = 1E6;
-        g_Update_DutCurrentB_uA = 1E6;
-        g_Update_DutCurrentC_uA = 1E6;
-        g_Update_DutCurrentD_uA = 1E6;
+        g_Update_DutCurrentA_uA = dutCurrentDC[0];
+        g_Update_DutCurrentB_uA = dutCurrentDC[1];
+        g_Update_DutCurrentC_uA = dutCurrentDC[2];
+        g_Update_DutCurrentD_uA = dutCurrentDC[3];
+        g_Update_DutModAmplitudeA_uA = dutCurrentModulation[0];
+        g_Update_DutModAmplitudeB_uA = dutCurrentModulation[1];
+        g_Update_DutModAmplitudeC_uA = dutCurrentModulation[2];
+        g_Update_DutModAmplitudeD_uA = dutCurrentModulation[3];        
+        g_Update_DetectorSensitivity = currentDetectorRange;
+        g_Update_DetectorGain = currentDetectorGain;        
         
         // TODO - calculate demod for all channels
-        g_Update_DutModAmplitudeA_uA = 2E5;
-        g_Update_DutModAmplitudeB_uA = 2E5;
-        g_Update_DutModAmplitudeC_uA = 2E5;
-        g_Update_DutModAmplitudeD_uA = 2E5;
-        g_Update_DutResponseA = 2000;
-        g_Update_DutResponseB = 3000;
-        g_Update_DutResponseC = 4000;
-        g_Update_DutResponseD = 5000;
-        g_Update_DetectorSensitivity = 2;
-        g_Update_DetectorGain = 2;
+        uint32_t response[4] = {0};
         
-        sendUpdate();
+        if(synthChannelActive[0]) {
+            response[0] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[0], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E5));
+        }
+
+        g_Update_DutResponseA = response[0];
+        g_Update_DutResponseB = response[1];
+        g_Update_DutResponseC = response[2];
+        g_Update_DutResponseD = response[3];
+
+        // sendUpdate();
         
         // Small delay to prevent CPU hogging
-        vTaskDelay(pdMS_TO_TICKS(100));
+        // vTaskDelay(pdMS_TO_TICKS(100));
     }
 }

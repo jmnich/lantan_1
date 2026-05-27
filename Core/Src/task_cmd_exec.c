@@ -125,7 +125,7 @@ void vCmd_MainTask(void *pvParams) {
     vLL_SetLED(LantanLED_Flt, LantanLED_Off);
     vLL_SetLED(LantanLED_Work, LantanLED_Off);
 
-    vComm_Printf("HELLO\r\n");
+    // vComm_Printf("HELLO\r\n");
 
     // AD5664_Init();
     // pull CS high

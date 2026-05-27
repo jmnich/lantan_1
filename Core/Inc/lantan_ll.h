@@ -50,6 +50,9 @@ typedef enum {
     DetGain_10,
 } LantanDetectorGain_t;
 
+extern LantanDetectorRange_t currentDetectorRange; 
+extern LantanDetectorGain_t currentDetectorGain;
+
 void vLL_DetectorConfigure(LantanDetectorRange_t _rng, LantanDetectorGain_t _gain);
 float fLL_CurrentSourceVoltMeas(LantanCurrSrc_t _srcCh);
 void vLL_CurrentSourceVoltage(LantanCurrSrc_t _srcCh, LantanSrcVoltage_t _voltage);

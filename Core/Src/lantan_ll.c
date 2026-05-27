@@ -11,6 +11,9 @@
 
 static uint8_t ledsLocked = 0;
 
+LantanDetectorRange_t currentDetectorRange = 0; 
+LantanDetectorGain_t currentDetectorGain = 0;
+
 // Reference voltage for ADC conversions (2500 mV)
 const float LANTAN_ADC_VREF_mV = 2500.0f;
 
@@ -52,6 +55,9 @@ void vLL_DetectorConfigure(LantanDetectorRange_t _rng, LantanDetectorGain_t _gai
 
     HAL_GPIO_WritePin(AMP_SEL_A_GPIO_Port, AMP_SEL_A_Pin, stateA);
     HAL_GPIO_WritePin(AMP_SEL_B_GPIO_Port, AMP_SEL_B_Pin, stateB);
+
+    currentDetectorRange = _rng;
+    currentDetectorGain = _gain;
 }
 
 static void vlocal_LEDsOff(void) {

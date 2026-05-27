@@ -11,7 +11,10 @@
 #define CHCNT 4
 #define SYNTH_BUF_LEN 4000
 
-static uint8_t synthChannelActive[CHCNT] = {0};
+float dutCurrentDC[CHCNT] = {0};            // [mA] DC working point
+float dutCurrentModulation[CHCNT] = {0};    // [mA] pkpk modulation
+
+uint8_t synthChannelActive[CHCNT] = {0};
 static uint32_t synthBuffer[CHCNT][SYNTH_BUF_LEN] __attribute__((section(".freertos_heap")));
 static uint32_t synthUsedSamples[CHCNT] = {0};
 
