@@ -32,6 +32,7 @@
 #include "lantan_ll.h"
 #include "task_comm.h"
 #include "task_cmd_exec.h"
+#include "task_update.h"
 #include "lantan_synth.h"
 
 #include "FreeRTOS.h"
@@ -130,9 +131,11 @@ int main(void)
 
   static TaskHandle_t vCommMainTaskHandle;
   static TaskHandle_t vCmdExecTaskHandle;
+  static TaskHandle_t vUpdateTaskHandle;
 
   xTaskCreate(vComm_MainTask, "commMain", 2048, NULL, 1, &vCommMainTaskHandle);
   xTaskCreate(vCmd_MainTask, "cmdExec", 2048, NULL, 2, &vCmdExecTaskHandle);
+  xTaskCreate(vUpdate_MainTask, "update", 2048, NULL, 2, &vUpdateTaskHandle);
 
   vTaskStartScheduler();
   /* USER CODE END 2 */
