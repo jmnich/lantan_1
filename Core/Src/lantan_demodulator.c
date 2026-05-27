@@ -20,7 +20,7 @@
 #include "queue.h"
 
 
-#define DEMOD_BUF_LEN   50000
+#define DEMOD_BUF_LEN   10000
 uint32_t demodBuf[DEMOD_BUF_LEN] __attribute__((section(".adc_buffers")));
 
 static volatile uint8_t adcDmaComplete = 0;

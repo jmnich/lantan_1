@@ -14,8 +14,47 @@ static uint8_t ledsLocked = 0;
 // Reference voltage for ADC conversions (2500 mV)
 const float LANTAN_ADC_VREF_mV = 2500.0f;
 
-static void vlocal_LEDsOff(void)
-{
+void vLL_DetectorConfigure(LantanDetectorRange_t _rng, LantanDetectorGain_t _gain) {
+    
+    GPIO_PinState stateA;
+    GPIO_PinState stateB;
+    
+    if(_rng == DetRange_100R) {
+        stateA = GPIO_PIN_RESET;
+        stateB = GPIO_PIN_RESET;
+    } else if (_rng == DetRange_1k) {
+        stateA = GPIO_PIN_SET;
+        stateB = GPIO_PIN_RESET;
+    } else if (_rng == DetRange_10k) {
+        stateA = GPIO_PIN_RESET;
+        stateB = GPIO_PIN_SET;
+    } else if (_rng == DetRange_100k) {
+        stateA = GPIO_PIN_SET;
+        stateB = GPIO_PIN_SET;
+    }
+
+    HAL_GPIO_WritePin(TIA_SEL_A_GPIO_Port, TIA_SEL_A_Pin, stateA);
+    HAL_GPIO_WritePin(TIA_SEL_B_GPIO_Port, TIA_SEL_B_Pin, stateB);
+
+    if(_gain == DetGain_0_5) {
+        stateA = GPIO_PIN_SET;
+        stateB = GPIO_PIN_SET;
+    } else if(_gain == DetGain_1_0) {
+        stateA = GPIO_PIN_RESET;
+        stateB = GPIO_PIN_SET;
+    } else if(_gain == DetGain_4_55) {
+        stateA = GPIO_PIN_SET;
+        stateB = GPIO_PIN_RESET;        
+    } else if(_gain == DetGain_10) {
+        stateA = GPIO_PIN_RESET;
+        stateB = GPIO_PIN_RESET;
+    }
+
+    HAL_GPIO_WritePin(AMP_SEL_A_GPIO_Port, AMP_SEL_A_Pin, stateA);
+    HAL_GPIO_WritePin(AMP_SEL_B_GPIO_Port, AMP_SEL_B_Pin, stateB);
+}
+
+static void vlocal_LEDsOff(void) {
     HAL_GPIO_WritePin(LED0_DBG_GPIO_Port, LED0_DBG_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED1_DBG_GPIO_Port, LED1_DBG_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED2_DBG_GPIO_Port, LED2_DBG_Pin, GPIO_PIN_RESET);

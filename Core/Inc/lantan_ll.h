@@ -36,6 +36,21 @@ typedef enum {
     LantanSrcVolt9V,
 } LantanSrcVoltage_t;
 
+typedef enum {
+    DetRange_100R,
+    DetRange_1k,
+    DetRange_10k,
+    DetRange_100k,
+} LantanDetectorRange_t;
+
+typedef enum {
+    DetGain_0_5,
+    DetGain_1_0,
+    DetGain_4_55,
+    DetGain_10,
+} LantanDetectorGain_t;
+
+void vLL_DetectorConfigure(LantanDetectorRange_t _rng, LantanDetectorGain_t _gain);
 float fLL_CurrentSourceVoltMeas(LantanCurrSrc_t _srcCh);
 void vLL_CurrentSourceVoltage(LantanCurrSrc_t _srcCh, LantanSrcVoltage_t _voltage);
 void vLL_CurrentSourceRelease(LantanCurrSrc_t _srcCh, LantanSrcRelease_t _release);

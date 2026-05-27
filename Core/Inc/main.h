@@ -93,6 +93,14 @@ void Error_Handler(void);
 #define FAN5_GPIO_Port GPIOE
 #define ENA_9V_Pin GPIO_PIN_14
 #define ENA_9V_GPIO_Port GPIOE
+#define TIA_SEL_B_Pin GPIO_PIN_12
+#define TIA_SEL_B_GPIO_Port GPIOB
+#define TIA_SEL_A_Pin GPIO_PIN_13
+#define TIA_SEL_A_GPIO_Port GPIOB
+#define AMP_SEL_B_Pin GPIO_PIN_14
+#define AMP_SEL_B_GPIO_Port GPIOB
+#define AMP_SEL_A_Pin GPIO_PIN_15
+#define AMP_SEL_A_GPIO_Port GPIOB
 #define SRC_A_RELEASE_Pin GPIO_PIN_8
 #define SRC_A_RELEASE_GPIO_Port GPIOD
 #define SRC_B_RELEASE_Pin GPIO_PIN_9

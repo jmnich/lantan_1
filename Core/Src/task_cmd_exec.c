@@ -42,7 +42,6 @@ void vCmd_HandleVoltDC(const CommCommand_t *pxCommand) {
 
 /**
  * @brief Main command execution task
- *        Sends HELLO message 500ms after boot, then processes incoming commands
  * @param pvParams Task parameters (unused)
  */
 void vCmd_MainTask(void *pvParams) {
@@ -65,48 +64,66 @@ void vCmd_MainTask(void *pvParams) {
 
     vLL_Set9VRail(1);  
 
-    // vSynth_CalculateChannel(SynthChannel_A, 1000, 500);
-    // vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
-    // vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
-    // vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
+    vLL_DetectorConfigure(DetRange_100k, DetGain_1_0);
 
-    // vSynth_SetChannelEnabled(SynthChannel_A, 1);
+    vSynth_CalculateChannel(SynthChannel_A, 446, 112);
+    // vSynth_CalculateChannel(SynthChannel_A, 50, 10);
+    vSynth_CalculateChannel(SynthChannel_B, 1000, 500);
+    vSynth_CalculateChannel(SynthChannel_C, 1000, 500);
+    vSynth_CalculateChannel(SynthChannel_D, 1000, 500);
+
+    vSynth_SetChannelEnabled(SynthChannel_A, 1);
     // vSynth_SetChannelEnabled(SynthChannel_B, 1);
     // vSynth_SetChannelEnabled(SynthChannel_C, 1);
     // vSynth_SetChannelEnabled(SynthChannel_D, 1);
-    // uSynth_StartSynth();
+    uSynth_StartSynth();
 
     // float demodValA = fDemod_SingleFreq(synthFrequency[0], DemodSrc_Diagnostic, AD5664_CHANNEL_A);    
     // float demodValB = fDemod_SingleFreq(synthFrequency[1], DemodSrc_Diagnostic, AD5664_CHANNEL_B);    
     // float demodValC = fDemod_SingleFreq(synthFrequency[2], DemodSrc_Diagnostic, AD5664_CHANNEL_C);    
     // float demodValD = fDemod_SingleFreq(synthFrequency[3], DemodSrc_Diagnostic, AD5664_CHANNEL_D);    
 
-    AD5664_SetVoltage(AD5664_CHANNEL_A, 500);
-    AD5664_SetVoltage(AD5664_CHANNEL_B, 500);
-    AD5664_SetVoltage(AD5664_CHANNEL_C, 500);
-    AD5664_SetVoltage(AD5664_CHANNEL_D, 500);
+    // AD5664_SetVoltage(AD5664_CHANNEL_A, 1500);
+    // AD5664_SetVoltage(AD5664_CHANNEL_B, 500);
+    // AD5664_SetVoltage(AD5664_CHANNEL_C, 500);
+    // AD5664_SetVoltage(AD5664_CHANNEL_D, 500);
+
+    vLL_CurrentSourceVoltage(LantanCurrSrc_A, LantanSrcVolt5V);
+    vLL_CurrentSourceVoltage(LantanCurrSrc_B, LantanSrcVolt5V);
+    vLL_CurrentSourceVoltage(LantanCurrSrc_C, LantanSrcVolt5V);
+    vLL_CurrentSourceVoltage(LantanCurrSrc_D, LantanSrcVolt5V);
   
+    vLL_CurrentSourceRelease(LantanCurrSrc_A, LantanSrcReleased);
+
     CommCommand_t xCommand;
     
     while (1) {
-        // Wait for a command from the queue (blocking)
-        if (xComm_ReceiveCommand(&xCommand, portMAX_DELAY) == pdTRUE) {
-            // Dispatch command to appropriate handler
-            switch (xCommand.id) {
-                case COMM_CMD_INFO:
-                    vCmd_HandleInfo(&xCommand);
-                    break;
+        // vTaskDelay(pdMS_TO_TICKS(50));
+        float demodValA = fDemod_SingleFreq(synthFrequency[0], DemodSrc_Detector, AD5664_CHANNEL_A);    
+
+        // Print demodValA to output with 5 significant digits
+        int32_t demodInt = (int32_t)(demodValA * 100000);
+        vComm_Printf("DEMOD_A:%ld\n", demodInt);
+
+        // Don' delete comments below!
+        // // Wait for a command from the queue (blocking)
+        // if (xComm_ReceiveCommand(&xCommand, portMAX_DELAY) == pdTRUE) {
+        //     // Dispatch command to appropriate handler
+        //     switch (xCommand.id) {
+        //         case COMM_CMD_INFO:
+        //             vCmd_HandleInfo(&xCommand);
+        //             break;
                     
-                case COMM_CMD_VOLT_DC:
-                    vCmd_HandleVoltDC(&xCommand);
-                    break;
+        //         case COMM_CMD_VOLT_DC:
+        //             vCmd_HandleVoltDC(&xCommand);
+        //             break;
                     
-                case COMM_CMD_INVALID:
-                default:
-                    // Invalid command - send error
-                    vComm_Printf("ERROR:Invalid command\n");
-                    break;
-            }
-        }
+        //         case COMM_CMD_INVALID:
+        //         default:
+        //             // Invalid command - send error
+        //             vComm_Printf("ERROR:Invalid command\n");
+        //             break;
+        //     }
+        // }
     }
 }

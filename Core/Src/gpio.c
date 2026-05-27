@@ -61,6 +61,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LED1_Pin|LED2_Pin|LED3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, TIA_SEL_B_Pin|TIA_SEL_A_Pin|AMP_SEL_B_Pin|AMP_SEL_A_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, SRC_A_RELEASE_Pin|SRC_B_RELEASE_Pin|SRC_C_RELEASE_Pin|SRC_D_RELEASE_Pin
                           |SRC_A_VOLT_SEL_Pin|SRC_B_VOLT_SEL_Pin|SRC_C_VOLT_SEL_Pin|SRC_D_VOLT_SEL_Pin
                           |LED0_DBG_Pin|LED1_DBG_Pin|LED2_DBG_Pin, GPIO_PIN_RESET);
@@ -82,6 +85,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : TIA_SEL_B_Pin TIA_SEL_A_Pin AMP_SEL_B_Pin AMP_SEL_A_Pin */
+  GPIO_InitStruct.Pin = TIA_SEL_B_Pin|TIA_SEL_A_Pin|AMP_SEL_B_Pin|AMP_SEL_A_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SRC_A_RELEASE_Pin SRC_B_RELEASE_Pin SRC_C_RELEASE_Pin SRC_D_RELEASE_Pin
                            SRC_A_VOLT_SEL_Pin SRC_B_VOLT_SEL_Pin SRC_C_VOLT_SEL_Pin SRC_D_VOLT_SEL_Pin

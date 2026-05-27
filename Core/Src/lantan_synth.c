@@ -19,7 +19,7 @@ const uint32_t samplingFrequency = maxSampleFrequencyPerCh;
 const uint32_t totalSPITransmissionsFrequency = samplingFrequency * 4;
 
 // frequencies of sinewaves for different channels
-const float synthFrequency[] = {500,1000,1500,2500};
+const float synthFrequency[] = {2500,1000,1500,500};
 
 void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pkpk) {
     // Calculate number of samples for one full period
