@@ -87,8 +87,11 @@ static void vLocal_InitADC(void) {
     hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_ONESHOT;
     hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
     hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
-    hadc1.Init.OversamplingMode = DISABLE;
-    hadc1.Init.Oversampling.Ratio = 1;
+    hadc1.Init.OversamplingMode = ENABLE;
+    hadc1.Init.Oversampling.Ratio = 4;
+    hadc1.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_2;
+    hadc1.Init.Oversampling.TriggeredMode = ADC_TRIGGEREDMODE_SINGLE_TRIGGER;
+    hadc1.Init.Oversampling.OversamplingStopReset = ADC_REGOVERSAMPLING_CONTINUED_MODE;
     
     // Re-initialize ADC with these settings
     HAL_ADC_Init(&hadc1);
@@ -155,7 +158,7 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     }
     
     sConfig.Rank = ADC_REGULAR_RANK_1;
-    sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+    sConfig.SamplingTime = ADC_SAMPLETIME_32CYCLES_5;
     sConfig.SingleDiff = ADC_SINGLE_ENDED;
     sConfig.OffsetNumber = ADC_OFFSET_NONE;
     sConfig.Offset = 0;
