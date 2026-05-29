@@ -18,6 +18,12 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+# Set optimization flags for build types
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g3")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -g0")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -g0")
+
 # Set the project name
 set(CMAKE_PROJECT_NAME lantan_1)
 
