@@ -8,8 +8,7 @@ typedef enum {
     DemodSrc_Detector,
 } DemodSource_t;
 
-
-
 float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _diagCh);
+void vDemod_Quad(float * _outA, float * _outB, float * _outC, float * _outD);
 
 #endif // LANTAN_DEMOD_H_

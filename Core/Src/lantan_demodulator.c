@@ -23,6 +23,15 @@
 #define DEMOD_BUF_LEN   10000
 uint32_t demodBuf[DEMOD_BUF_LEN] __attribute__((section(".adc_buffers")));
 
+#define TABLE_SIZE 1000
+const float sin_table[TABLE_SIZE];
+const float cos_table[TABLE_SIZE];
+
+static const float scale = TABLE_SIZE / (2.0f * M_PI);
+
+// extern const float sin_table[];
+// extern const float cos_table[];
+
 static volatile uint8_t adcDmaComplete = 0;
 
 // DMA transfer complete callback
@@ -31,6 +40,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
         adcDmaComplete = 1;
     }
 }
+
+static inline void init_trig_tables(float sin_table[TABLE_SIZE], float cos_table[TABLE_SIZE]);
 
 static uint32_t current_arr = 0; // Store the current ARR value for TIM6
 
@@ -121,6 +132,8 @@ static void vLocal_InitADC(void) {
     /* ADC1 interrupt Init */
     HAL_NVIC_SetPriority(ADC_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(ADC_IRQn);
+
+    init_trig_tables((float*)sin_table, (float*)cos_table);
 }
 
 static void vLocal_StartADC(void) {    
@@ -236,4 +249,136 @@ float fDemod_SingleFreq(float _demodFreq, DemodSource_t _src, AD5664_Channel_t _
     
     // return calculated value
     return intensity;
+}
+
+// ====================== HIGH PERFORMANCE TRIGONOMETRY ===========================
+
+static inline float fsin_array(float angle) {
+    int index = (int)(angle * scale);
+    index %= TABLE_SIZE;
+    index += (index < 0) * TABLE_SIZE;
+    return sin_table[index];
+}
+
+static inline float fcos_array(float angle) {
+    int index = (int)(angle * scale);
+    index %= TABLE_SIZE;
+    index += (index < 0) * TABLE_SIZE;
+    return cos_table[index];
+}
+
+static inline void init_trig_tables(float sin_table[TABLE_SIZE], float cos_table[TABLE_SIZE]) {
+    static const float two_pi = 2.0f * M_PI;
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        float angle = i * two_pi / (float)TABLE_SIZE;
+        sin_table[i] = sinf(angle);
+        cos_table[i] = cosf(angle);
+    }
+}
+
+// ====================== QUAD DEMODULATOR ===========================
+
+void vDemod_Quad(float * _outA, float * _outB, float * _outC, float * _outD) {
+
+    // prepare peripherals
+    // Reset ADC and DMA state
+    HAL_ADC_Stop_DMA(&hadc1);
+    HAL_TIM_Base_Stop(&htim6);
+    
+    vLocal_InitADC();
+
+    // Set sampling frequency to at least 2x the demodulation frequency
+    // For proper sampling, we typically want 5-10x the frequency
+    float samplingFreq = 2E5; // 200 kHz
+    vLocal_SetSamplingTimer(samplingFreq);
+
+    // set ADC channel (ADC1 IN3 - Detector, ADC1 IN10 - diagnostic)
+    ADC_ChannelConfTypeDef sConfig = {0};
+    
+    sConfig.Channel = ADC_CHANNEL_3;  // PA6 - DETECTOR
+    sConfig.Rank = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_32CYCLES_5;
+    sConfig.SingleDiff = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset = 0;
+    sConfig.OffsetSignedSaturation = DISABLE;
+    HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+
+    // record data into buffer in a blocking fashion, so just launch ADC and timer
+    // and wait until DMA is done
+    vLocal_StartADC();
+    
+    // Wait for DMA completion with timeout
+    // Add some margin: 3 seconds timeout
+    uint32_t timeout = 3000;
+    while (adcDmaComplete == 0 && timeout > 0) {
+        timeout--;
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+
+    // Stop peripherals
+    HAL_ADC_Stop_DMA(&hadc1);
+    HAL_TIM_Base_Stop(&htim6);
+
+    // demodulate
+
+    float omega[4];
+    // sampling freq is 200 kHz (2E5)
+    for(int i = 0; i < 4; i++) {
+        float Ts = 1.0f / 2E5;//synthFrequency[i];  // Sampling period
+        omega[i] = 2.0f * M_PI * synthFrequency[i] * Ts;
+        // omega[i] = 2.0f * M_PI * synthFrequency[i]; 
+    }
+
+    float I[4];// = 0.0f;  // In-phase component
+    float Q[4];// = 0.0f;  // Quadrature component
+
+    for(int i = 0; i < 4; i++) {
+        I[i] = 0.0f;
+        Q[i] = 0.0f;
+    }
+
+    uint32_t numSamples = DEMOD_BUF_LEN;
+
+    for (uint32_t n = 0; n < numSamples; n++) {
+        // Get ADC value (16-bit, stored in 32-bit buffer)
+        // ADC value is in bits 0-15 of the 32-bit word
+        uint16_t adcValue = (uint16_t)(demodBuf[n] & 0xFFFF);
+
+        // Convert to float and normalize to [-1, 1] range
+        // ADC is 16-bit, so full scale is 65535
+        float signal = (float)adcValue / 32767.5f - 1.0f;  // Scale to [-1, 1]
+
+        // Calculate cosine and sine for this sample
+        for(int f = 0; f < 4; f++) {
+
+            float cos_val = cosf(n * omega[f]);
+            float sin_val = sinf(n * omega[f]);
+
+            // Accumulate I and Q
+            I[f] += signal * cos_val;
+            Q[f] += signal * sin_val;
+        }
+    }
+
+    // Calculate intensity (magnitude)
+    // Intensity is proportional to sqrt(I^2 + Q^2)
+    // Normalize by number of samples
+
+    float intensity[4];
+    for(int f = 0; f < 4; f++) {
+        intensity[f] = sqrtf(I[f] * I[f] + Q[f] * Q[f]) / (float)numSamples;
+        intensity[f] *= 2.0f;
+    }
+
+    // Since we scaled the signal to [-1, 1], the maximum intensity would be 1.0
+    // But ADC values are always positive (0 to 65535), so we need to adjust
+    // Actually, for a pure tone at the demodulation frequency, we expect:
+    // intensity = A/2 where A is the amplitude (as a fraction of full scale)
+    // So we multiply by 2 to get the amplitude
+
+    *_outA = intensity[0];
+    *_outB = intensity[1];
+    *_outC = intensity[2];
+    *_outD = intensity[3];
 }

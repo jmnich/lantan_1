@@ -178,20 +178,27 @@ void vUpdate_MainTask(void *pvParams) {
         
         uint32_t response[4] = {0};
         
+        float fResp[4];
+        vDemod_Quad(&(fResp[0]), &(fResp[1]), &(fResp[2]), &(fResp[3]));
+
         if(synthChannelActive[0]) {
-            response[0] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[0], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            // response[0] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[0], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            response[0] = (uint32_t)(roundf(fResp[0] * 1E6));
         }
 
         if(synthChannelActive[1]) {
-            response[1] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[1], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            // response[1] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[1], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            response[1] = (uint32_t)(roundf(fResp[1] * 1E6));
         }
 
         if(synthChannelActive[2]) {
-            response[2] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[2], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            // response[2] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[2], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            response[2] = (uint32_t)(roundf(fResp[2] * 1E6));
         }
 
         if(synthChannelActive[3]) {
-            response[3] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[3], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            // response[3] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[3], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
+            response[3] = (uint32_t)(roundf(fResp[3] * 1E6));
         }
 
         g_Update_DutResponseA = response[0];
