@@ -1,6 +1,7 @@
 #include "task_update.h"
 #include "lantan_synth.h"
 #include "lantan_demodulator.h"
+#include "projdefs.h"
 #include "task_cmd_exec.h"
 #include "lantan_ll.h"
 #include "adc.h"
@@ -145,6 +146,8 @@ void vUpdate_MainTask(void *pvParams) {
     UNUSED(pvParams);
 
     while(1) {
+        vTaskDelay(pdMS_TO_TICKS(50));
+
         // repeat this loop as often as possible
         // Update the global variables above with current values from hardware
 

@@ -24,8 +24,8 @@
 uint32_t demodBuf[DEMOD_BUF_LEN] __attribute__((section(".adc_buffers")));
 
 #define TABLE_SIZE 1000
-const float sin_table[TABLE_SIZE];
-const float cos_table[TABLE_SIZE];
+float sin_table[TABLE_SIZE];
+float cos_table[TABLE_SIZE];
 
 static const float scale = TABLE_SIZE / (2.0f * M_PI);
 
@@ -133,7 +133,7 @@ static void vLocal_InitADC(void) {
     HAL_NVIC_SetPriority(ADC_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(ADC_IRQn);
 
-    init_trig_tables((float*)sin_table, (float*)cos_table);
+    init_trig_tables(sin_table, cos_table);
 }
 
 static void vLocal_StartADC(void) {    
@@ -352,8 +352,11 @@ void vDemod_Quad(float * _outA, float * _outB, float * _outC, float * _outD) {
         // Calculate cosine and sine for this sample
         for(int f = 0; f < 4; f++) {
 
-            float cos_val = cosf(n * omega[f]);
-            float sin_val = sinf(n * omega[f]);
+            float cos_val = fcos_array(n * omega[f]);
+            float sin_val = fsin_array(n * omega[f]);
+
+            // float cos_val = cosf(n * omega[f]);
+            // float sin_val = sinf(n * omega[f]);
 
             // Accumulate I and Q
             I[f] += signal * cos_val;
