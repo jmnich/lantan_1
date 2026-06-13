@@ -2,6 +2,7 @@
 #include <math.h>
 #include "driver_ad5664.h"
 #include "stm32h753xx.h"
+#include "stm32h7xx_hal_def.h"
 #include "stm32h7xx_hal_tim.h"
 #include "tim.h"
 #include "spi.h"
@@ -17,7 +18,7 @@ uint8_t synthChannelActive[CHCNT] = {0};
 static uint32_t synthBuffer[CHCNT][SYNTH_BUF_LEN] __attribute__((section(".freertos_heap")));
 static uint32_t synthUsedSamples[CHCNT] = {0};
 
-const uint32_t maxSampleFrequencyPerCh = 75000;
+const uint32_t maxSampleFrequencyPerCh = 50000;
 const uint32_t samplingFrequency = maxSampleFrequencyPerCh;
 const uint32_t totalSPITransmissionsFrequency = samplingFrequency * 4;
 

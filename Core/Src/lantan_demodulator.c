@@ -20,7 +20,7 @@
 #include "queue.h"
 
 
-#define DEMOD_BUF_LEN   10000
+#define DEMOD_BUF_LEN   30000
 uint32_t demodBuf[DEMOD_BUF_LEN] __attribute__((section(".adc_buffers")));
 
 #define TABLE_SIZE 1000
