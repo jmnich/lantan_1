@@ -1,7 +1,9 @@
 #include "task_update.h"
 #include "lantan_synth.h"
 #include "lantan_demodulator.h"
+#include "main.h"
 #include "projdefs.h"
+#include "stm32h7xx_hal_gpio.h"
 #include "task_cmd_exec.h"
 #include "lantan_ll.h"
 #include "adc.h"
@@ -112,11 +114,12 @@ static volatile uint32_t g_Update_DutResponseC = 0;
 static volatile uint32_t g_Update_DutResponseD = 0;
 static volatile uint32_t g_Update_DetectorSensitivity = 1;
 static volatile uint32_t g_Update_DetectorGain = 1;
+static volatile uint32_t g_Update_DetectorOutOfRangeFlag = 0;
 
 static void sendUpdate(void) {
     // Format and send update message using global variables from this file
-    // Protocol format: UPDATE|<power good flag>|<channel A active>|...|<detector gain>\r\n
-    vComm_Printf("UPDATE|%u|%u|%u|%u|%u|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu\r\n",
+    // Protocol format: UPDATE|<power good flag>|<channel A active>|...|<detector gain>|<detector out of range flag>\r\n
+    vComm_Printf("UPDATE|%u|%u|%u|%u|%u|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu|%lu\r\n",
                  g_Update_PowerGoodFlag,
                  g_Update_ChannelA_Active,
                  g_Update_ChannelB_Active,
@@ -139,7 +142,8 @@ static void sendUpdate(void) {
                  g_Update_DutResponseC,
                  g_Update_DutResponseD,
                  g_Update_DetectorSensitivity,
-                 g_Update_DetectorGain);
+                 g_Update_DetectorGain,
+                 g_Update_DetectorOutOfRangeFlag);
 }
 
 void vUpdate_MainTask(void *pvParams) {
@@ -161,7 +165,9 @@ void vUpdate_MainTask(void *pvParams) {
             vLL_CurrentSourceRelease(LantanCurrSrc_B, LantanSrcLocked);
             vLL_CurrentSourceRelease(LantanCurrSrc_C, LantanSrcLocked);
             vLL_CurrentSourceRelease(LantanCurrSrc_D, LantanSrcLocked);
-        }         
+
+            vLL_SetLED(LantanLED_Work, LantanLED_Off);
+        }     
 
         g_Update_PowerGoodFlag = powerGoodFlag;
         g_Update_ChannelA_Active = synthChannelActive[0];
@@ -182,7 +188,7 @@ void vUpdate_MainTask(void *pvParams) {
         uint32_t response[4] = {0};
         
         float fResp[4];
-        vDemod_Quad(&(fResp[0]), &(fResp[1]), &(fResp[2]), &(fResp[3]));
+        vDemod_Quad(&(fResp[0]), &(fResp[1]), &(fResp[2]), &(fResp[3]), &g_Update_DetectorOutOfRangeFlag);
 
         if(synthChannelActive[0]) {
             // response[0] = (uint32_t)(roundf(fDemod_SingleFreq(synthFrequency[0], DemodSrc_Detector, AD5664_CHANNEL_A) * 1E6));
@@ -208,6 +214,10 @@ void vUpdate_MainTask(void *pvParams) {
         g_Update_DutResponseB = response[1];
         g_Update_DutResponseC = response[2];
         g_Update_DutResponseD = response[3];
+
+        // set FLT when out of range
+        if(g_Update_DetectorOutOfRangeFlag != 0) vLL_SetLED(LantanLED_Flt, LantanLED_On);
+        else vLL_SetLED(LantanLED_Flt, LantanLED_Off);
 
         // Measure and filter voltage for SRC A-D
         // SRC_V_A - ADC2 IN7, SRC_V_B - ADC2 IN4, SRC_V_C - ADC2 IN8, SRC_V_D - ADC2 IN9
@@ -257,6 +267,24 @@ void vUpdate_MainTask(void *pvParams) {
 
             // Small delay to prevent CPU hogging
             vTaskDelay(pdMS_TO_TICKS(150));
+
+            vLL_SetLED(LantanLED_Work, LantanLED_Off);
+
+
+            HAL_GPIO_WritePin(FAN1_GPIO_Port, FAN1_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(FAN2_GPIO_Port, FAN2_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(FAN3_GPIO_Port, FAN3_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(FAN4_GPIO_Port, FAN4_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(FAN5_GPIO_Port, FAN5_Pin, GPIO_PIN_RESET);
+
+        } else {
+            vLL_SetLED(LantanLED_Work, LantanLED_On);
+
+            HAL_GPIO_WritePin(FAN1_GPIO_Port, FAN1_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(FAN2_GPIO_Port, FAN2_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(FAN3_GPIO_Port, FAN3_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(FAN4_GPIO_Port, FAN4_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(FAN5_GPIO_Port, FAN5_Pin, GPIO_PIN_SET);
         }
     }
 }

@@ -2,7 +2,7 @@
 
 **Application:** Lantan GUI  
 **Interface:** Serial Port (RS-232/RS-485/USB)  
-**Document Version:** 1.0  
+**Document Version:** 1.1  
 
 ---
 
@@ -40,7 +40,7 @@ All messages are ASCII encoded. The start with CMD ID and end with '\r\n'. Separ
 
 ### direction: serial device -> PC
 There is only one message in this direction. Device constantly sends update frames in the following format (dut means 'device under test', ABCD indicates channel):
-UPDATE|<power good flag>|<channel A active>|<channel B active>|<channel C active>|<channel D active>|<dut voltage A>|<dut voltage B>|<dut voltage C>|<dut voltage D>|<dut current A>|<dut current B>|<dut current C>|<dut current D>|<dut modulation amplitude A>|<dut modulation amplitude B>|<dut modulation amplitude C>|<dut modulation amplitude D>|<dut response A>|<dut response B>|<dut response C>|<dut response D>|<detector sensitivity>|<detector gain>\r\n
+UPDATE|<power good flag>|<channel A active>|<channel B active>|<channel C active>|<channel D active>|<dut voltage A>|<dut voltage B>|<dut voltage C>|<dut voltage D>|<dut current A>|<dut current B>|<dut current C>|<dut current D>|<dut modulation amplitude A>|<dut modulation amplitude B>|<dut modulation amplitude C>|<dut modulation amplitude D>|<dut response A>|<dut response B>|<dut response C>|<dut response D>|<detector sensitivity>|<detector gain>|<detector out of range flag>\r\n
 
 ### direction: PC -> serial device
 Commands start with an ID made of letters and then is followed by numerical arguments. The number and meaning of arguements depends on the ID.
@@ -77,6 +77,7 @@ dut response C: intensity in arbitrary unit
 dut response D: intensity in arbitrary unit
 detector sensitivity: integer value (1,2,3 or 4)
 detector gain: integer value (1,2,3 or 4)
+detector out of range flag: integer value (0 or 1)
 
 ### direction: PC -> serial device
 

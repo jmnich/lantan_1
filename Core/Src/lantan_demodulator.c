@@ -18,6 +18,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include <stdint.h>
 
 
 #define DEMOD_BUF_LEN   30000
@@ -278,7 +279,7 @@ static inline void init_trig_tables(float sin_table[TABLE_SIZE], float cos_table
 
 // ====================== QUAD DEMODULATOR ===========================
 
-void vDemod_Quad(float * _outA, float * _outB, float * _outC, float * _outD) {
+void vDemod_Quad(float * _outA, float * _outB, float * _outC, float * _outD, uint32_t  * _detectorOutOfRange) {
 
     // prepare peripherals
     // Reset ADC and DMA state
@@ -319,6 +320,25 @@ void vDemod_Quad(float * _outA, float * _outB, float * _outC, float * _outD) {
     // Stop peripherals
     HAL_ADC_Stop_DMA(&hadc1);
     HAL_TIM_Base_Stop(&htim6);
+
+    // check detector saturation
+    float upperBound = 0.95;
+    float lowerBound = 0.05;
+    float outOfBoundAllowance = 0.005 * DEMOD_BUF_LEN;
+    uint16_t max = UINT16_MAX * upperBound;
+    uint16_t min = UINT16_MAX * lowerBound;
+
+    uint32_t outOfBoundsCnt = 0;
+
+    for(uint32_t i = 0; i < DEMOD_BUF_LEN; i++) {
+        uint16_t adcValue = (uint16_t)(demodBuf[i] & 0xFFFF);
+        
+        if(adcValue > max) outOfBoundsCnt++;
+        else if(adcValue < min) outOfBoundsCnt++;
+    }
+
+    if(outOfBoundsCnt >= outOfBoundAllowance) *_detectorOutOfRange = 1;
+    else *_detectorOutOfRange = 0;
 
     // demodulate
 
