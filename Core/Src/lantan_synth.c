@@ -23,11 +23,20 @@ const uint32_t samplingFrequency = maxSampleFrequencyPerCh;
 const uint32_t totalSPITransmissionsFrequency = samplingFrequency * 4;
 
 // HARD CONFIGS
-// frequencies of sinewaves for different channels
-const float synthFrequency[] = {2500,1000,1515,500};
-const uint32_t synthOffsets[] = {446, 446, 446, 446}; // [mV]
-const uint32_t synthPkPkMax[] = {200, 200, 200, 200}; // [mV]
+/*
+* Current config (as of 16.06.2026)
+* CH A: RYL ()
+* CH B: GRN ()
+* CH C: AMB ()
+* CH D: FRD ()
+*/
 
+// frequencies of sinewaves for different channels
+const float synthFrequency[] = {2500,1000,1600,500};
+// const uint32_t synthOffsets[] = {446, 446, 446, 446}; // [mV]
+// const uint32_t synthPkPkMax[] = {200, 200, 200, 200}; // [mV]
+const uint32_t synthOffsets[] = {700, 700, 700, 700}; // [mV]
+const uint32_t synthPkPkMax[] = {300, 300, 300, 300}; // [mV]
 
 void vSynth_CalculateChannel(LantanSynthCh_t _ch, uint32_t _offset, uint32_t _pkpk) {
     // Calculate number of samples for one full period
