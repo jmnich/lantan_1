@@ -32,7 +32,7 @@ const uint32_t totalSPITransmissionsFrequency = samplingFrequency * 4;
 */
 
 // frequencies of sinewaves for different channels
-const float synthFrequency[] = {2500,1000,1600,500};
+const float synthFrequency[] = {500,1000,2500,5000};
 // const uint32_t synthOffsets[] = {446, 446, 446, 446}; // [mV]
 // const uint32_t synthPkPkMax[] = {200, 200, 200, 200}; // [mV]
 const uint32_t synthOffsets[] = {700, 700, 700, 700}; // [mV]
